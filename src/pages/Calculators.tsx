@@ -12,6 +12,10 @@ import {
   Zap,
   HelpCircle
 } from "lucide-react";
+import AerationCalculator from "@/components/calculators/AerationCalculator";
+import FeederCalculator from "@/components/calculators/FeederCalculator";
+import MolarityCalculator from "@/components/calculators/MolarityCalculator";
+import PowerFactorCalculator from "@/components/calculators/PowerFactorCalculator";
 
 const Calculators = () => {
   const [pondLength, setPondLength] = useState("");
@@ -185,47 +189,74 @@ const Calculators = () => {
 
           {/* More Calculators */}
           <TabsContent value="more">
-            <div className="grid grid-cols-2 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Wind className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                  <h3 className="font-medium">Aeration Calculator</h3>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Coming Soon
-                  </Button>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Fish className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                  <h3 className="font-medium">Feeder Calibration</h3>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Coming Soon
-                  </Button>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Droplets className="h-8 w-8 mx-auto mb-2 text-teal-500" />
-                  <h3 className="font-medium">Shrimp Molarity</h3>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Coming Soon
-                  </Button>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Zap className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-                  <h3 className="font-medium">Power Factor</h3>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Coming Soon
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <Tabs defaultValue="aeration" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="aeration">Aeration</TabsTrigger>
+                <TabsTrigger value="feeder">Feeder</TabsTrigger>
+                <TabsTrigger value="molarity">Molarity</TabsTrigger>
+                <TabsTrigger value="power">Power</TabsTrigger>
+              </TabsList>
+
+              {/* Aeration Calculator */}
+              <TabsContent value="aeration">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Wind className="h-5 w-5" />
+                      Aeration Calculator
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <AerationCalculator />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Feeder Calibration Calculator */}
+              <TabsContent value="feeder">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Fish className="h-5 w-5" />
+                      Feeder Calibration Calculator
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FeederCalculator />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Shrimp Molarity Calculator */}
+              <TabsContent value="molarity">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Droplets className="h-5 w-5" />
+                      Shrimp Molarity Calculator
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <MolarityCalculator />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Power Factor Calculator */}
+              <TabsContent value="power">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="h-5 w-5" />
+                      Power Factor Calculator
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <PowerFactorCalculator />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
 

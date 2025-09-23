@@ -261,7 +261,7 @@ const Store = () => {
                     Total: ₹{getTotalAmount().toLocaleString()}
                   </p>
                 </div>
-                <Button>
+                <Button onClick={() => window.alert("Cart functionality requires Supabase integration for order management and payments.")}>
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   View Cart
                 </Button>
