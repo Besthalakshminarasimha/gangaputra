@@ -24,7 +24,7 @@ const AIAssistant = () => {
     },
   ]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!message.trim()) return;
 
     const userMessage: Message = {
@@ -37,16 +37,90 @@ const AIAssistant = () => {
     setMessages(prev => [...prev, userMessage]);
     setMessage("");
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponse: Message = {
+    try {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
+      const response = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [
+            ...messages.map(msg => ({
+              role: msg.isBot ? "assistant" : "user",
+              content: msg.text
+            })),
+            { role: "user", content: message }
+          ]
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error("Failed to get AI response");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let botMessageId = (Date.now() + 1).toString();
+      let accumulatedText = "";
+
+      setMessages(prev => [...prev, {
+        id: botMessageId,
+        text: "",
+        isBot: true,
+        timestamp: new Date(),
+      }]);
+
+      let textBuffer = "";
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              accumulatedText += content;
+              setMessages(prev => prev.map(msg =>
+                msg.id === botMessageId ? { ...msg, text: accumulatedText } : msg
+              ));
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I understand your query. Let me help you with that. This is a demo response - in the full implementation, this would connect to an AI service for intelligent responses.",
+        text: "Sorry, I'm having trouble connecting. Please try again.",
         isBot: true,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
