@@ -22,8 +22,8 @@ const HeroSection = () => {
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in">
-              The Future of
-              <span className="text-gradient block mt-2">Aqua Farming</span>
+              <span className="text-gradient block">GANGAPUTRA</span>
+              The Future of Aqua Farming
             </h1>
             
             <p className="text-xl text-white/90 mb-8 max-w-2xl animate-fade-in">
@@ -32,11 +32,11 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in">
-              <Button variant="hero" size="lg" className="group">
+              <Button variant="hero" size="lg" className="group" onClick={() => window.location.href = '/auth'}>
                 Start Your Farm Journey
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="sustainable" size="lg">
+              <Button variant="sustainable" size="lg" onClick={() => window.location.href = '/dashboard'}>
                 Watch Demo
               </Button>
             </div>

@@ -23,7 +23,7 @@ const Header = () => {
               <Fish className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gradient">AquaFlow</h1>
+              <h1 className="text-xl font-bold text-gradient">GANGAPUTRA</h1>
               <p className="text-xs text-muted-foreground">Smart Farming</p>
             </div>
           </div>
@@ -43,10 +43,10 @@ const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => window.location.href = '/auth'}>
               Sign In
             </Button>
-            <Button variant="hero" size="sm">
+            <Button variant="hero" size="sm" onClick={() => window.location.href = '/auth'}>
               Get Started
             </Button>
           </div>
@@ -79,10 +79,10 @@ const Header = () => {
                 </a>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => window.location.href = '/auth'}>
                   Sign In
                 </Button>
-                <Button variant="hero" size="sm">
+                <Button variant="hero" size="sm" onClick={() => window.location.href = '/auth'}>
                   Get Started
                 </Button>
               </div>
