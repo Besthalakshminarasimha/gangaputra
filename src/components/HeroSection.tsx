@@ -1,8 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Fish, Droplets, Zap, BarChart3 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import heroImage from "@/assets/hero-aqua-farm.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleGetStarted = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <section className="hero-gradient min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Animated background elements */}
@@ -32,12 +45,12 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in">
-              <Button variant="hero" size="lg" className="group" onClick={() => window.location.href = '/auth'}>
-                Start Your Farm Journey
+              <Button variant="hero" size="lg" className="group" onClick={handleGetStarted}>
+                {user ? "Go to Dashboard" : "Start Your Farm Journey"}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="sustainable" size="lg" onClick={() => window.location.href = '/dashboard'}>
-                Watch Demo
+              <Button variant="sustainable" size="lg" onClick={() => navigate("/aquapedia")}>
+                Learn More
               </Button>
             </div>
 
