@@ -258,7 +258,6 @@ const Aquapedia = () => {
       title: "Purchase initiated",
       description: `Redirecting to purchase ${medicine.name}...`,
     });
-    // In a real app, this would redirect to payment gateway
   };
 
   return (
