@@ -19,32 +19,152 @@ const Aquapedia = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const hatcheries = [
+    // Andhra Pradesh & Tamil Nadu - Major Shrimp/Aqua Hatcheries
     {
-      name: "Godavari Hatcheries",
-      location: "Rajahmundry, East Godavari",
-      contact: "+91 9876543210",
-      species: ["Black Tiger Shrimp", "Vannamei Shrimp"],
-      capacity: "10 Million PL/month",
-      certification: "CAA Approved",
-      distance: "12 km"
+      name: "Srinidhi Biotechnologies",
+      location: "Palmanpeta, Edatam Village, Payakaraopeta Mandal, Visakhapatnam District, AP",
+      contact: "9849444057",
+      species: ["L. vannamei"],
+      type: "Private Hatchery",
+      region: "Andhra Pradesh"
     },
     {
-      name: "Krishna Aqua Farms",
-      location: "Machilipatnam, Krishna",
-      contact: "+91 9876543211",
-      species: ["Rohu", "Catla", "Mrigal"],
-      capacity: "5 Million Fry/month",
-      certification: "MPEDA Certified",
-      distance: "25 km"
+      name: "SVR Hatcheries",
+      location: "Vemavaram Village, Addaripeta Post, Thondangi Mandal, East Godavari District, AP",
+      contact: "9440965995",
+      species: ["L. vannamei"],
+      type: "Private Hatchery",
+      region: "Andhra Pradesh"
     },
     {
-      name: "Coastal Shrimp Hatchery",
-      location: "Nellore, Nellore",
-      contact: "+91 9876543212",
-      species: ["Vannamei Shrimp"],
-      capacity: "15 Million PL/month",
-      certification: "CAA + MPEDA",
-      distance: "45 km"
+      name: "Ananda Aqua Applications",
+      location: "27-8-21, Sivarao pet, Bhimavaram, West Godavari District, AP",
+      contact: "9849556699",
+      species: ["Shrimp"],
+      type: "Hatchery & Aqua Applications",
+      region: "Andhra Pradesh"
+    },
+    {
+      name: "BMR Hatcheries Ltd. (Administrative Office)",
+      location: "16/3-509, Mini Bye-pass Road, Ramamurthi Nagar, Nellore – 524003, AP",
+      contact: "+91 861 2325515",
+      species: ["Shrimp"],
+      type: "Private Hatchery (BMR Group)",
+      region: "Andhra Pradesh"
+    },
+    {
+      name: "Nellore Hatcheries (BMR Group)",
+      location: "Mypadu, Indukurpet Mandal, Nellore District, AP",
+      contact: "9849049118",
+      species: ["Shrimp"],
+      type: "Private Hatchery",
+      region: "Andhra Pradesh"
+    },
+    {
+      name: "Alpha Hatchery, Unit-I",
+      location: "S No. 178-B-546/2, Koruturu Village, Indukurpet Mandal, Nellore District, AP",
+      contact: "9394930100",
+      species: ["L. vannamei"],
+      type: "Private Hatchery",
+      region: "Andhra Pradesh"
+    },
+    {
+      name: "Gayathri Hatcheries",
+      location: "Kothavodarevu, Pandurangapuram Village, Bapatla – 522101, Guntur District, AP",
+      contact: "9849815566",
+      species: ["L. vannamei"],
+      type: "Private Hatchery",
+      region: "Andhra Pradesh"
+    },
+    {
+      name: "Sapthagiri Hatcheries",
+      location: "Srirampuram, A. Malliyavani (P.O), Kakinada, AP",
+      contact: "Contact via website",
+      species: ["SPF Post-Larvae (PLs)"],
+      type: "SPF Hatchery",
+      region: "Andhra Pradesh"
+    },
+    {
+      name: "Sudhith Shrimp Hatchery",
+      location: "107, Perunthuravu Village, Seekanakuppam Post, Koovathur – 603305, Cheyyur Taluk, Kancheepuram District, TN",
+      contact: "Contact for inquiries",
+      species: ["L. vannamei"],
+      type: "Private Hatchery",
+      region: "Tamil Nadu"
+    },
+    {
+      name: "Vaisakhi Bio-marine Private Limited, Unit – I",
+      location: "Kaipenikuppam Village, Marakkanam Post, Thindivanam Taluk, Villupuram District – 604303, TN",
+      contact: "Contact for inquiries",
+      species: ["L. vannamei"],
+      type: "Private Hatchery",
+      region: "Tamil Nadu"
+    },
+    {
+      name: "BMR Industries Pvt. Ltd. (Classwin Hatchery)",
+      location: "2/154, East Coast Road, Muttukadu Village, Kancheepuram District, TN",
+      contact: "Contact for inquiries",
+      species: ["L. vannamei"],
+      type: "Private Hatchery",
+      region: "Tamil Nadu"
+    },
+    // Government / Research Institutes
+    {
+      name: "Rajiv Gandhi Center for Aquaculture (RGCA)",
+      location: "Kancheepuram, Tamil Nadu & other centers in Andhra Pradesh",
+      contact: "075988 42296, 099425 22977",
+      species: ["Tilapia (GIFT)", "Seabass", "Pompano", "Monodon", "Etroplus"],
+      type: "Government/Research Institute",
+      region: "Multi-state"
+    },
+    {
+      name: "ICAR-Central Institute of Freshwater Aquaculture (CIFA)",
+      location: "Bhubaneshwar, Odisha",
+      contact: "7008136480, 9777046042",
+      species: ["Catla", "Rohu", "Murrel", "Anabas", "Magur"],
+      type: "Government/Research Institute",
+      region: "Odisha"
+    },
+    {
+      name: "ICAR-Central Institute of Brackishwater Aquaculture (CIBA)",
+      location: "Chennai, Tamil Nadu",
+      contact: "+91-44-24618817",
+      species: ["Mud Crab", "Prawn", "Seabass", "Milkfish", "Pearl spot", "Mullet"],
+      type: "Government/Research Institute",
+      region: "Tamil Nadu"
+    },
+    {
+      name: "NFDB-National Freshwater Fish Brood Bank (NFFBB)",
+      location: "Bhubaneshwar, Odisha",
+      contact: "0674-2465761",
+      species: ["Jayanthi Rohu", "Amur Carp", "Improved Catla", "Scampi"],
+      type: "Government/Research Institute",
+      region: "Odisha"
+    },
+    // Kerala State-Specific Hatcheries
+    {
+      name: "Multispecious Shrimp Hatchery ADAK",
+      location: "Thiruvambady Beach, Varkkala, Thiruvananthapuram, Kerala",
+      contact: "9400699410",
+      species: ["Macrobrachium rosenbergii", "P. Indicus", "P. monodon", "Seabass", "Pompano", "Chanos", "Pearl spot"],
+      type: "State Hatchery",
+      region: "Kerala"
+    },
+    {
+      name: "Satelite Centre on Genetically Improved Farmed Tilapia Breeding and Rearing",
+      location: "Neyyardam, Thiruvananthapuram, Kerala",
+      contact: "Email: adnyyardam@gmail.com",
+      species: ["GIFT Tilapia"],
+      type: "Government Breeding Center",
+      region: "Kerala"
+    },
+    {
+      name: "Star Fish Farm",
+      location: "S.J. Nivas, Kottamam, Dhanuvachapuram, Thiruvananthapuram, Kerala",
+      contact: "8589017378",
+      species: ["Carp", "Etroplus", "Pangasius", "Anabas"],
+      type: "Private Farm",
+      region: "Kerala"
     }
   ];
 
@@ -84,6 +204,8 @@ const Aquapedia = () => {
   const filteredHatcheries = hatcheries.filter(hatchery =>
     hatchery.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     hatchery.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    hatchery.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    hatchery.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
     hatchery.species.some(species => species.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
@@ -129,7 +251,7 @@ const Aquapedia = () => {
           {/* Hatcheries Tab */}
           <TabsContent value="hatcheries" className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">Hatcheries in Andhra Pradesh</h2>
+              <h2 className="text-lg font-bold">Major Hatcheries</h2>
               <Badge variant="outline">{filteredHatcheries.length} found</Badge>
             </div>
 
@@ -140,14 +262,19 @@ const Aquapedia = () => {
                     <Fish className="h-5 w-5" />
                     {hatchery.name}
                   </CardTitle>
-                  <Badge variant="default" className="w-fit">
-                    {hatchery.certification}
-                  </Badge>
+                  <div className="flex gap-2">
+                    <Badge variant="default" className="w-fit">
+                      {hatchery.region}
+                    </Badge>
+                    <Badge variant="outline" className="w-fit">
+                      {hatchery.type}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    {hatchery.location} • {hatchery.distance}
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span>{hatchery.location}</span>
                   </div>
                   
                   <div className="flex items-center gap-2 text-sm">
@@ -166,12 +293,9 @@ const Aquapedia = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Capacity: {hatchery.capacity}
-                    </span>
+                  <div className="flex justify-end">
                     <Button size="sm">
-                      <ExternalLink className="h-4 w-4 mr-1" />
+                      <Phone className="h-4 w-4 mr-1" />
                       Contact
                     </Button>
                   </div>
