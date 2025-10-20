@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   MapPin, 
@@ -16,7 +19,11 @@ import {
 
 const Aquapedia = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedRegion, setSelectedRegion] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedMedicine, setSelectedMedicine] = useState<any>(null);
+  const { toast } = useToast();
 
   const hatcheries = [
     // Andhra Pradesh & Tamil Nadu - Major Shrimp/Aqua Hatcheries
@@ -201,19 +208,58 @@ const Aquapedia = () => {
     }
   ];
 
-  const filteredHatcheries = hatcheries.filter(hatchery =>
-    hatchery.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hatchery.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hatchery.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hatchery.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hatchery.species.some(species => species.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredHatcheries = hatcheries.filter(hatchery => {
+    const matchesSearch = hatchery.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      hatchery.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      hatchery.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      hatchery.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      hatchery.species.some(species => species.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesRegion = selectedRegion === "all" || hatchery.region === selectedRegion;
+    const matchesType = selectedType === "all" || hatchery.type === selectedType;
+    
+    return matchesSearch && matchesRegion && matchesType;
+  });
 
   const filteredMedicines = medicines.filter(medicine =>
     medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     medicine.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     medicine.manufacturer.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleNearMe = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          toast({
+            title: "Location detected",
+            description: "Showing hatcheries near you (feature in development)",
+          });
+        },
+        (error) => {
+          toast({
+            title: "Location access denied",
+            description: "Please enable location access to use this feature",
+            variant: "destructive",
+          });
+        }
+      );
+    } else {
+      toast({
+        title: "Location not supported",
+        description: "Your browser doesn't support geolocation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBuyMedicine = (medicine: any) => {
+    toast({
+      title: "Purchase initiated",
+      description: `Redirecting to purchase ${medicine.name}...`,
+    });
+    // In a real app, this would redirect to payment gateway
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -294,9 +340,11 @@ const Aquapedia = () => {
                   </div>
 
                   <div className="flex justify-end">
-                    <Button size="sm">
-                      <Phone className="h-4 w-4 mr-1" />
-                      Contact
+                    <Button size="sm" asChild>
+                      <a href={`tel:${hatchery.contact.replace(/\s/g, '')}`}>
+                        <Phone className="h-4 w-4 mr-1" />
+                        Contact
+                      </a>
                     </Button>
                   </div>
                 </CardContent>
@@ -356,31 +404,146 @@ const Aquapedia = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full" size="sm">
-                    View Details & Buy
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-full" size="sm" onClick={() => setSelectedMedicine(medicine)}>
+                        View Details & Buy
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Pill className="h-5 w-5" />
+                          {medicine.name}
+                        </DialogTitle>
+                        <DialogDescription>
+                          Complete product information and purchase options
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="flex gap-2">
+                          <Badge variant="default">CAA Approved</Badge>
+                          <Badge variant="outline">{medicine.category}</Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-semibold text-sm">Manufacturer</p>
+                            <p className="text-sm text-muted-foreground">{medicine.manufacturer}</p>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">Price</p>
+                            <p className="text-sm text-primary font-bold">{medicine.price}</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-sm">Active Ingredient</p>
+                          <p className="text-sm text-muted-foreground">{medicine.activeIngredient}</p>
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-sm">Recommended Dosage</p>
+                          <p className="text-sm text-muted-foreground">{medicine.dosage}</p>
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-sm mb-2">Uses & Applications</p>
+                          <div className="flex flex-wrap gap-1">
+                            {medicine.uses.map((use: string, idx: number) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {use}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-4 flex gap-2">
+                          <Button className="flex-1" onClick={() => handleBuyMedicine(medicine)}>
+                            Buy Now
+                          </Button>
+                          <Button variant="outline" className="flex-1">
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </CardContent>
               </Card>
             ))}
           </TabsContent>
         </Tabs>
 
-        {/* Quick Links */}
+        {/* Filter & Quick Access */}
         <Card>
           <CardHeader>
             <CardTitle>Quick Access</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
                 <Filter className="h-4 w-4 mr-2" />
-                Filter Results
+                {showFilters ? "Hide Filters" : "Show Filters"}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleNearMe}>
                 <MapPin className="h-4 w-4 mr-2" />
                 Near Me
               </Button>
             </div>
+
+            {showFilters && (
+              <div className="space-y-3 pt-2 border-t">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Filter by Region</label>
+                  <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Regions</SelectItem>
+                      <SelectItem value="Andhra Pradesh">Andhra Pradesh</SelectItem>
+                      <SelectItem value="Tamil Nadu">Tamil Nadu</SelectItem>
+                      <SelectItem value="Kerala">Kerala</SelectItem>
+                      <SelectItem value="Odisha">Odisha</SelectItem>
+                      <SelectItem value="Multi-state">Multi-state</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Filter by Type</label>
+                  <Select value={selectedType} onValueChange={setSelectedType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="Private Hatchery">Private Hatchery</SelectItem>
+                      <SelectItem value="Government/Research Institute">Government/Research</SelectItem>
+                      <SelectItem value="State Hatchery">State Hatchery</SelectItem>
+                      <SelectItem value="SPF Hatchery">SPF Hatchery</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => {
+                    setSelectedRegion("all");
+                    setSelectedType("all");
+                    toast({
+                      title: "Filters cleared",
+                      description: "Showing all hatcheries",
+                    });
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
