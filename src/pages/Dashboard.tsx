@@ -1,7 +1,12 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Fish, 
   Zap, 
@@ -12,10 +17,19 @@ import {
   Wrench,
   TrendingUp,
   Droplets,
-  Thermometer
+  Thermometer,
+  MapPin,
+  Cloud
 } from "lucide-react";
 
 const Dashboard = () => {
+  const [showAddFarm, setShowAddFarm] = useState(false);
+  const [showAddPowerMon, setShowAddPowerMon] = useState(false);
+  const [showWeatherMap, setShowWeatherMap] = useState(false);
+  const [weatherLocation, setWeatherLocation] = useState("");
+  const [temperature, setTemperature] = useState<number | null>(null);
+  const { toast } = useToast();
+
   const farmStats = [
     { label: "Total Ponds", value: "12", icon: Fish, color: "text-blue-600" },
     { label: "Active Devices", value: "8", icon: Zap, color: "text-green-600" },
@@ -40,6 +54,61 @@ const Dashboard = () => {
     { type: "Equipment", message: "Aerator maintenance due", time: "1 hour ago", severity: "medium" },
     { type: "Feed", message: "Low feed stock alert", time: "3 hours ago", severity: "low" },
   ];
+
+  const handleAddFarm = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Farm Added",
+      description: "Your new farm has been added successfully!",
+    });
+    setShowAddFarm(false);
+  };
+
+  const handleAddPowerMon = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "PowerMon Added",
+      description: "PowerMon device has been added successfully!",
+    });
+    setShowAddPowerMon(false);
+  };
+
+  const handleRequestService = () => {
+    toast({
+      title: "Service Requested",
+      description: "Our team will contact you shortly.",
+    });
+  };
+
+  const handleContactAssociate = () => {
+    window.location.href = "tel:+918049444057";
+  };
+
+  const handleCallSupport = () => {
+    window.location.href = "tel:18001234567";
+  };
+
+  const handleWeatherCheck = async () => {
+    if (!weatherLocation) {
+      toast({
+        title: "Enter Location",
+        description: "Please enter a location to check weather.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Simulating weather API call
+    toast({
+      title: "Fetching Weather",
+      description: `Getting temperature for ${weatherLocation}...`,
+    });
+    
+    // Mock temperature data
+    setTimeout(() => {
+      setTemperature(Math.floor(Math.random() * 15) + 20); // Random temp between 20-35°C
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -73,9 +142,15 @@ const Dashboard = () => {
         {/* Crop Progress */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Fish className="h-5 w-5" />
-              Crop Progress
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Fish className="h-5 w-5" />
+                Crop Progress
+              </div>
+              <Button size="sm" variant="outline" onClick={() => setShowWeatherMap(true)}>
+                <Cloud className="h-4 w-4 mr-2" />
+                Weather Map
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -147,19 +222,19 @@ const Dashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
-          <Button className="h-20 flex-col gap-2">
+          <Button className="h-20 flex-col gap-2" onClick={() => setShowAddFarm(true)}>
             <Plus className="h-6 w-6" />
             Add Farm
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2">
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setShowAddPowerMon(true)}>
             <Zap className="h-6 w-6" />
             Add PowerMons
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2">
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={handleRequestService}>
             <Wrench className="h-6 w-6" />
             Request Service
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2">
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={handleContactAssociate}>
             <Users className="h-6 w-6" />
             Contact Associate
           </Button>
@@ -168,13 +243,111 @@ const Dashboard = () => {
         {/* Support */}
         <Card>
           <CardContent className="p-4">
-            <Button className="w-full" size="lg">
+            <Button className="w-full" size="lg" onClick={handleCallSupport}>
               <Phone className="h-5 w-5 mr-2" />
-              Call Support: 1800-XXX-XXXX
+              Call Support: 1800-123-4567
             </Button>
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Farm Dialog */}
+      <Dialog open={showAddFarm} onOpenChange={setShowAddFarm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Farm</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddFarm} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="farmName">Farm Name</Label>
+              <Input id="farmName" placeholder="Enter farm name" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" placeholder="Enter location" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ponds">Number of Ponds</Label>
+              <Input id="ponds" type="number" placeholder="Enter number of ponds" required />
+            </div>
+            <Button type="submit" className="w-full">Add Farm</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add PowerMon Dialog */}
+      <Dialog open={showAddPowerMon} onOpenChange={setShowAddPowerMon}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add PowerMon Device</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddPowerMon} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="deviceId">Device ID</Label>
+              <Input id="deviceId" placeholder="Enter device ID" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="deviceLocation">Location</Label>
+              <Input id="deviceLocation" placeholder="e.g., Pond 1-3" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="capacity">Capacity (Amps)</Label>
+              <Input id="capacity" type="number" step="0.1" placeholder="Enter capacity" required />
+            </div>
+            <Button type="submit" className="w-full">Add Device</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Weather Map Dialog */}
+      <Dialog open={showWeatherMap} onOpenChange={setShowWeatherMap}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Weather Map</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="weatherLocation">Location</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="weatherLocation" 
+                  placeholder="Enter city name" 
+                  value={weatherLocation}
+                  onChange={(e) => setWeatherLocation(e.target.value)}
+                />
+                <Button onClick={handleWeatherCheck}>
+                  <MapPin className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {temperature !== null && (
+              <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
+                <CardContent className="p-6 text-center">
+                  <Thermometer className="h-12 w-12 mx-auto mb-4 text-blue-600" />
+                  <h3 className="text-2xl font-bold mb-2">{weatherLocation}</h3>
+                  <p className="text-5xl font-bold mb-2">{temperature}°C</p>
+                  <p className="text-sm text-muted-foreground">Current Temperature</p>
+                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Humidity</p>
+                      <p className="font-bold">65%</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Wind Speed</p>
+                      <p className="font-bold">12 km/h</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            <p className="text-xs text-muted-foreground text-center">
+              Enter a location to check current weather conditions
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

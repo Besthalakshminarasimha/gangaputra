@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   ShoppingCart, 
@@ -10,13 +12,16 @@ import {
   Plus, 
   Minus,
   CreditCard,
-  Smartphone
+  Smartphone,
+  X
 } from "lucide-react";
 
 const Store = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [cart, setCart] = useState<{[key: string]: number}>({});
+  const [showCart, setShowCart] = useState(false);
+  const { toast } = useToast();
 
   const categories = [
     { id: "all", name: "All", icon: "🏪" },
@@ -143,6 +148,21 @@ const Store = () => {
     }, 0);
   };
 
+  const handleCheckout = () => {
+    toast({
+      title: "Redirecting to IndiaMART",
+      description: "Taking you to complete your purchase...",
+    });
+    setTimeout(() => {
+      window.open("https://dir.indiamart.com/search.mp?ss=aqua+&prdsrc=1&v=4&mcatid=&catid=&crs=xnh-city&trc=xim&cq=Bengaluru&tags=res:RC3|ktp:N0|mtp:S|wc:1|lcf:3|cq:bengaluru|qr_nm:gl-gd|cs:16997|com-cf:nl|ptrs:na|mc:156180|cat:13|qry_typ:P|lang:en|tyr:1|qrd:251018|mrd:251004|prdt:251021|msf:hs|pfen:1|gli:G0I0|gc:Bengaluru|ic:Bengaluru|scw:1", "_blank");
+    }, 500);
+  };
+
+  const cartItems = Object.entries(cart).filter(([_, count]) => count > 0).map(([productId, count]) => {
+    const product = products.find(p => p.id === productId);
+    return { product, count };
+  });
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -261,7 +281,7 @@ const Store = () => {
                     Total: ₹{getTotalAmount().toLocaleString()}
                   </p>
                 </div>
-                <Button onClick={() => window.alert("Cart functionality requires Supabase integration for order management and payments.")}>
+                <Button onClick={() => setShowCart(true)}>
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   View Cart
                 </Button>
@@ -296,6 +316,60 @@ const Store = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cart Dialog */}
+      <Dialog open={showCart} onOpenChange={setShowCart}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Shopping Cart ({getTotalItems()} items)</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {cartItems.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Your cart is empty</p>
+            ) : (
+              <>
+                {cartItems.map(({ product, count }) => product && (
+                  <div key={product.id} className="flex gap-3 p-3 bg-muted rounded-lg">
+                    <div className="text-3xl">{product.image}</div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{product.name}</h4>
+                      <p className="text-xs text-muted-foreground">{product.description}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="font-bold">₹{(product.price * count).toLocaleString()}</span>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" onClick={() => removeFromCart(product.id)}>
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="font-medium">{count}</span>
+                          <Button size="sm" variant="outline" onClick={() => addToCart(product.id)}>
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setCart(prev => ({ ...prev, [product.id]: 0 }))}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div className="border-t pt-4 space-y-2">
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span>₹{getTotalAmount().toLocaleString()}</span>
+                  </div>
+                  <Button className="w-full" size="lg" onClick={handleCheckout}>
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Proceed to Checkout
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground">
+                    You'll be redirected to IndiaMART to complete your purchase
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
