@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,10 +20,30 @@ import MolarityCalculator from "@/components/calculators/MolarityCalculator";
 import PowerFactorCalculator from "@/components/calculators/PowerFactorCalculator";
 
 const Calculators = () => {
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [pondLength, setPondLength] = useState("");
   const [pondWidth, setPondWidth] = useState("");
   const [pondDepth, setPondDepth] = useState("");
   const [volume, setVolume] = useState(0);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const [feedAmount, setFeedAmount] = useState("");
   const [fishWeight, setFishWeight] = useState("");

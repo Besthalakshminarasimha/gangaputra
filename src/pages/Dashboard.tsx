@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Fish, 
   Zap, 
@@ -19,16 +21,25 @@ import {
   Droplets,
   Thermometer,
   MapPin,
-  Cloud
+  Cloud,
+  LogOut
 } from "lucide-react";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { user, loading, signOut } = useAuth();
   const [showAddFarm, setShowAddFarm] = useState(false);
   const [showAddPowerMon, setShowAddPowerMon] = useState(false);
   const [showWeatherMap, setShowWeatherMap] = useState(false);
   const [weatherLocation, setWeatherLocation] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
 
   const farmStats = [
     { label: "Total Ponds", value: "12", icon: Fish, color: "text-blue-600" },
@@ -110,12 +121,40 @@ const Dashboard = () => {
     }, 1000);
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+    navigate("/auth");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-primary-dark p-6 text-primary-foreground">
-        <h1 className="text-2xl font-bold mb-2">Farm Dashboard</h1>
-        <p className="text-primary-foreground/80">Welcome back! Here's your farm overview</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Farm Dashboard</h1>
+            <p className="text-primary-foreground/80">Welcome back! Here's your farm overview</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-primary-foreground">
+            <LogOut className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       <div className="p-4 space-y-6">
