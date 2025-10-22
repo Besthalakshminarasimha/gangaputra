@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Fish, 
   Zap, 
@@ -22,7 +23,8 @@ import {
   Thermometer,
   MapPin,
   Cloud,
-  LogOut
+  LogOut,
+  User
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -31,15 +33,37 @@ const Dashboard = () => {
   const [showAddFarm, setShowAddFarm] = useState(false);
   const [showAddPowerMon, setShowAddPowerMon] = useState(false);
   const [showWeatherMap, setShowWeatherMap] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [weatherLocation, setWeatherLocation] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
+    
+    if (user) {
+      fetchProfile();
+    }
   }, [user, loading, navigate]);
+  
+  const fetchProfile = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching profile:', error);
+    } else {
+      setProfile(data);
+    }
+  };
 
   const farmStats = [
     { label: "Total Ponds", value: "12", icon: Fish, color: "text-blue-600" },
@@ -151,9 +175,14 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold mb-2">Farm Dashboard</h1>
             <p className="text-primary-foreground/80">Welcome back! Here's your farm overview</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-primary-foreground">
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={() => setShowProfile(true)} className="text-primary-foreground">
+              <User className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="text-primary-foreground">
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -384,6 +413,63 @@ const Dashboard = () => {
             <p className="text-xs text-muted-foreground text-center">
               Enter a location to check current weather conditions
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Profile Dialog */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>User Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-10 w-10 text-primary" />
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <Label className="text-sm text-muted-foreground">Email</Label>
+                <p className="text-base font-medium">{user?.email}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-muted-foreground">Full Name</Label>
+                <p className="text-base font-medium">{profile?.full_name || "Not set"}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-muted-foreground">User ID</Label>
+                <p className="text-xs font-mono bg-muted p-2 rounded break-all">{user?.id}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-muted-foreground">Account Created</Label>
+                <p className="text-base">
+                  {profile?.created_at 
+                    ? new Date(profile.created_at).toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
+                    : "N/A"
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => setShowProfile(false)}
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -60,81 +60,227 @@ const Store = () => {
   const products = [
     {
       id: "1",
-      name: "AquaBot Pro 2.0",
-      category: "devices",
-      price: 45000,
-      originalPrice: 50000,
+      name: "2HP Shrimp Farming Aerator",
+      category: "aerators",
+      price: 34000,
+      originalPrice: 38000,
       rating: 4.8,
-      reviews: 124,
-      image: "🤖",
-      description: "Advanced aqua farming robot with AI monitoring",
+      reviews: 156,
+      image: "💨",
+      description: "Surface Floating Aerator, Up to 27m Visible Flow, 2.5-2.8 kg O2/hrs",
       inStock: true,
-      featured: true
+      featured: true,
+      url: "https://www.indiamart.com/proddetail/2hp-shrimp-farming-aerator-6453643888.html"
     },
     {
       id: "2",
-      name: "PowerMon Elite",
-      category: "devices",
-      price: 15000,
-      originalPrice: 18000,
+      name: "Fish Pond Shrimp Prawn Aerator",
+      category: "aerators",
+      price: 26000,
+      originalPrice: 29000,
       rating: 4.6,
       reviews: 89,
-      image: "⚡",
-      description: "Smart electricity monitoring for aqua farms",
+      image: "💨",
+      description: "1 HP Portable Aerator, 1.3-1.5 Kg O2/Hr, SS 304 Grade",
       inStock: true,
-      featured: true
+      featured: false,
+      url: "https://www.indiamart.com/proddetail/fish-pond-shrimp-prawn-aerator-20621069730.html"
     },
     {
       id: "3",
-      name: "Premium Vannamei Feed",
-      category: "feed",
-      price: 2500,
-      originalPrice: 2800,
-      rating: 4.7,
-      reviews: 256,
-      image: "🦐",
-      description: "High protein feed for optimal shrimp growth - 25kg",
+      name: "Paddle Wheel Aerator 1HP",
+      category: "aerators",
+      price: 28000,
+      originalPrice: 32000,
+      rating: 4.5,
+      reviews: 134,
+      image: "💨",
+      description: "High efficiency paddle wheel aerator for aquaculture ponds",
       inStock: true,
-      featured: false
+      featured: false,
+      url: "https://dir.indiamart.com/impcat/paddle-wheel-aerator.html"
     },
     {
       id: "4",
-      name: "Aqua-Safe Medicine Kit",
-      category: "medicine",
-      price: 1200,
-      originalPrice: 1400,
-      rating: 4.5,
-      reviews: 178,
-      image: "💊",
-      description: "Complete medicine kit for common aqua diseases",
+      name: "Vannamei Shrimp Feed - Premium",
+      category: "feed",
+      price: 55,
+      originalPrice: 60,
+      rating: 4.7,
+      reviews: 342,
+      image: "🦐",
+      description: "High protein Vannamei feed, 29% protein, 1.5mm pellet size - Per Kg",
       inStock: true,
-      featured: false
+      featured: true,
+      url: "https://www.exportersindia.com/indian-suppliers/shrimp-feed.htm"
     },
     {
       id: "5",
-      name: "Super Aerator 500W",
-      category: "aerators",
-      price: 8500,
-      originalPrice: 9500,
-      rating: 4.4,
-      reviews: 67,
-      image: "💨",
-      description: "High efficiency aerator for large ponds",
-      inStock: false,
-      featured: false
+      name: "Vannamei Feed - Standard",
+      category: "feed",
+      price: 48,
+      originalPrice: 52,
+      rating: 4.5,
+      reviews: 267,
+      image: "🦐",
+      description: "Quality Vannamei shrimp feed for optimal growth - Per Kg",
+      inStock: true,
+      featured: false,
+      url: "https://dir.indiamart.com/chennai/shrimp-feed.html"
     },
     {
       id: "6",
-      name: "Water Test Kit Pro",
+      name: "Aquaculture Water Testing Kit",
       category: "test-kits",
-      price: 3500,
-      originalPrice: 4000,
+      price: 2870,
+      originalPrice: 3200,
       rating: 4.6,
-      reviews: 134,
+      reviews: 178,
       image: "🔬",
-      description: "Complete water testing kit with digital meters",
+      description: "Complete water testing kit with pH, DO, Ammonia, Nitrite tests",
       inStock: true,
-      featured: true
+      featured: true,
+      url: "https://www.indiamart.com/proddetail/aquaculture-water-testing-kit-3726374762.html"
+    },
+    {
+      id: "7",
+      name: "API Pond Master Test Kit",
+      category: "test-kits",
+      price: 1850,
+      originalPrice: 2100,
+      rating: 4.4,
+      reviews: 156,
+      image: "🔬",
+      description: "Portable water testing kit with color comparing chart",
+      inStock: true,
+      featured: false,
+      url: "https://www.indiamart.com/proddetail/api-pond-master-test-kit-24260360730.html"
+    },
+    {
+      id: "8",
+      name: "Dissolved Oxygen Test Kit",
+      category: "test-kits",
+      price: 950,
+      originalPrice: 1100,
+      rating: 4.3,
+      reviews: 98,
+      image: "🔬",
+      description: "Professional DO testing kit for aquaculture",
+      inStock: true,
+      featured: false,
+      url: "https://dir.indiamart.com/impcat/dissolved-oxygen-test-kit.html"
+    },
+    {
+      id: "9",
+      name: "Aqua Probiotic Liquid (Power PS)",
+      category: "medicine",
+      price: 850,
+      originalPrice: 950,
+      rating: 4.6,
+      reviews: 234,
+      image: "💊",
+      description: "Shrimp probiotic liquid for gut health and disease prevention - 1L",
+      inStock: true,
+      featured: true,
+      url: "https://www.indiamart.com/proddetail/aqua-shrimp-probiotic-liquid-power-ps-24225948191.html"
+    },
+    {
+      id: "10",
+      name: "Probiotics for Vannamei Shrimp",
+      category: "medicine",
+      price: 1200,
+      originalPrice: 1400,
+      rating: 4.7,
+      reviews: 189,
+      image: "💊",
+      description: "Specialized probiotics for Vannamei shrimp aquaculture - 1kg",
+      inStock: true,
+      featured: true,
+      url: "https://www.indiamart.com/proddetail/probiotics-for-vennamai-shrimp-in-aquaculture-23295263630.html"
+    },
+    {
+      id: "11",
+      name: "Aqua Gut Pro Probiotics",
+      category: "medicine",
+      price: 980,
+      originalPrice: 1150,
+      rating: 4.5,
+      reviews: 167,
+      image: "💊",
+      description: "Gut health optimizer probiotic for shrimp farming - 500g",
+      inStock: true,
+      featured: false,
+      url: "https://www.indiamart.com/proddetail/aqua-gut-pro-pr-probiotics-18688209062.html"
+    },
+    {
+      id: "12",
+      name: "Microbial Antibiotic Alternative",
+      category: "medicine",
+      price: 1450,
+      originalPrice: 1650,
+      rating: 4.4,
+      reviews: 145,
+      image: "💊",
+      description: "Natural alternative to antibiotics for fish and shrimp - 1kg",
+      inStock: false,
+      featured: false,
+      url: "https://www.indiamart.com/proddetail/microbial-alternative-to-antibiotics-in-fish-and-shrimp-farming-2855763808655.html"
+    },
+    {
+      id: "13",
+      name: "Aqua Minerals Mix",
+      category: "minerals",
+      price: 680,
+      originalPrice: 750,
+      rating: 4.5,
+      reviews: 203,
+      image: "⚡",
+      description: "Essential mineral supplement for shrimp growth - 5kg",
+      inStock: true,
+      featured: false,
+      url: "https://dir.indiamart.com/impcat/shrimp-feed.html"
+    },
+    {
+      id: "14",
+      name: "Calcium Mineral Supplement",
+      category: "minerals",
+      price: 520,
+      originalPrice: 600,
+      rating: 4.3,
+      reviews: 167,
+      image: "⚡",
+      description: "Calcium enriched mineral for shell hardening - 10kg",
+      inStock: true,
+      featured: false,
+      url: "https://dir.indiamart.com/impcat/shrimp-feed.html"
+    },
+    {
+      id: "15",
+      name: "Aqua Disinfectant Powder",
+      category: "disinfectants",
+      price: 780,
+      originalPrice: 850,
+      rating: 4.4,
+      reviews: 189,
+      image: "🧽",
+      description: "Pond disinfectant for disease control - 5kg",
+      inStock: true,
+      featured: false,
+      url: "https://dir.indiamart.com/impcat/water-testing-equipment.html"
+    },
+    {
+      id: "16",
+      name: "Chlorine Dioxide Disinfectant",
+      category: "disinfectants",
+      price: 920,
+      originalPrice: 1050,
+      rating: 4.6,
+      reviews: 156,
+      image: "🧽",
+      description: "Powerful water disinfectant for aquaculture - 1L",
+      inStock: true,
+      featured: false,
+      url: "https://dir.indiamart.com/impcat/water-testing-equipment.html"
     }
   ];
 
@@ -171,12 +317,23 @@ const Store = () => {
   };
 
   const handleCheckout = () => {
+    if (getTotalItems() === 0) {
+      toast({
+        title: "Cart is empty",
+        description: "Please add items to cart before checkout",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     toast({
       title: "Redirecting to IndiaMART",
       description: "Taking you to complete your purchase...",
     });
+    
     setTimeout(() => {
       window.open("https://dir.indiamart.com/search.mp?ss=aqua+&prdsrc=1&v=4&mcatid=&catid=&crs=xnh-city&trc=xim&cq=Bengaluru&tags=res:RC3|ktp:N0|mtp:S|wc:1|lcf:3|cq:bengaluru|qr_nm:gl-gd|cs:16997|com-cf:nl|ptrs:na|mc:156180|cat:13|qry_typ:P|lang:en|tyr:1|qrd:251018|mrd:251004|prdt:251021|msf:hs|pfen:1|gli:G0I0|gc:Bengaluru|ic:Bengaluru|scw:1", "_blank");
+      setShowCart(false);
     }, 500);
   };
 
