@@ -461,13 +461,21 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-4 flex gap-2">
               <Button 
                 variant="outline" 
-                className="w-full"
+                className="flex-1"
                 onClick={() => setShowProfile(false)}
               >
                 Close
+              </Button>
+              <Button 
+                variant="destructive" 
+                className="flex-1"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
               </Button>
             </div>
           </div>
