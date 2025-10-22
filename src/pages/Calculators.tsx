@@ -26,6 +26,9 @@ const Calculators = () => {
   const [pondWidth, setPondWidth] = useState("");
   const [pondDepth, setPondDepth] = useState("");
   const [volume, setVolume] = useState(0);
+  const [feedAmount, setFeedAmount] = useState("");
+  const [fishWeight, setFishWeight] = useState("");
+  const [feedPercentage, setFeedPercentage] = useState("3");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -45,9 +48,6 @@ const Calculators = () => {
     return null;
   }
 
-  const [feedAmount, setFeedAmount] = useState("");
-  const [fishWeight, setFishWeight] = useState("");
-  const [feedPercentage, setFeedPercentage] = useState("3");
 
   const calculateVolume = () => {
     const l = parseFloat(pondLength);
