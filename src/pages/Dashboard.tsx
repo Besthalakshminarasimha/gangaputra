@@ -176,11 +176,23 @@ const Dashboard = () => {
             <p className="text-primary-foreground/80">Welcome back! Here's your farm overview</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={() => setShowProfile(true)} className="text-primary-foreground">
-              <User className="h-5 w-5" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowProfile(true)} 
+              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Profile
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="text-primary-foreground">
-              <LogOut className="h-5 w-5" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleLogout} 
+              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
             </Button>
           </div>
         </div>
