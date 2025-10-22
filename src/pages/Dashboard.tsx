@@ -37,6 +37,14 @@ const Dashboard = () => {
   const [weatherLocation, setWeatherLocation] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [farms, setFarms] = useState<any[]>([]);
+  const [powerMonDevices, setPowerMonDevices] = useState<any[]>([]);
+  const [farmName, setFarmName] = useState("");
+  const [farmLocation, setFarmLocation] = useState("");
+  const [farmPonds, setFarmPonds] = useState("");
+  const [deviceId, setDeviceId] = useState("");
+  const [deviceLocation, setDeviceLocation] = useState("");
+  const [deviceCapacity, setDeviceCapacity] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,6 +54,8 @@ const Dashboard = () => {
     
     if (user) {
       fetchProfile();
+      fetchFarms();
+      fetchPowerMonDevices();
     }
   }, [user, loading, navigate]);
   
@@ -65,10 +75,43 @@ const Dashboard = () => {
     }
   };
 
+  const fetchFarms = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('farms')
+      .select('*')
+      .eq('user_id', user.id);
+    
+    if (error) {
+      console.error('Error fetching farms:', error);
+    } else {
+      setFarms(data || []);
+    }
+  };
+
+  const fetchPowerMonDevices = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('powermon_devices')
+      .select('*')
+      .eq('user_id', user.id);
+    
+    if (error) {
+      console.error('Error fetching PowerMon devices:', error);
+    } else {
+      setPowerMonDevices(data || []);
+    }
+  };
+
+  const totalPonds = farms.reduce((sum, farm) => sum + farm.number_of_ponds, 0);
+  const activeDevices = powerMonDevices.length;
+
   const farmStats = [
-    { label: "Total Ponds", value: "12", icon: Fish, color: "text-blue-600" },
-    { label: "Active Devices", value: "8", icon: Zap, color: "text-green-600" },
-    { label: "Crop Progress", value: "65%", icon: TrendingUp, color: "text-purple-600" },
+    { label: "Total Ponds", value: totalPonds.toString(), icon: Fish, color: "text-blue-600" },
+    { label: "Active Devices", value: activeDevices.toString(), icon: Zap, color: "text-green-600" },
+    { label: "Total Farms", value: farms.length.toString(), icon: TrendingUp, color: "text-purple-600" },
     { label: "Water Quality", value: "Good", icon: Droplets, color: "text-blue-500" },
   ];
 
@@ -85,34 +128,104 @@ const Dashboard = () => {
   ];
 
   const alarms = [
-    { type: "Water Quality", message: "pH level high in Pond 5", time: "2 mins ago", severity: "high" },
-    { type: "Equipment", message: "Aerator maintenance due", time: "1 hour ago", severity: "medium" },
-    { type: "Feed", message: "Low feed stock alert", time: "3 hours ago", severity: "low" },
+    { type: "Water Quality", message: "pH level monitoring active", time: "2 mins ago", severity: "low" },
+    { type: "Equipment", message: "All systems operational", time: "1 hour ago", severity: "low" },
+    { type: "Feed", message: "Feed stock normal", time: "3 hours ago", severity: "low" },
   ];
 
-  const handleAddFarm = (e: React.FormEvent) => {
+  const handleAddFarm = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Farm Added",
-      description: "Your new farm has been added successfully!",
-    });
-    setShowAddFarm(false);
+    
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('farms')
+      .insert({
+        user_id: user.id,
+        farm_name: farmName,
+        location: farmLocation,
+        number_of_ponds: parseInt(farmPonds)
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add farm. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Error adding farm:', error);
+    } else {
+      toast({
+        title: "Farm Added",
+        description: "Your new farm has been added successfully!",
+      });
+      setShowAddFarm(false);
+      setFarmName("");
+      setFarmLocation("");
+      setFarmPonds("");
+      fetchFarms();
+    }
   };
 
-  const handleAddPowerMon = (e: React.FormEvent) => {
+  const handleAddPowerMon = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "PowerMon Added",
-      description: "PowerMon device has been added successfully!",
-    });
-    setShowAddPowerMon(false);
+    
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('powermon_devices')
+      .insert({
+        user_id: user.id,
+        device_id: deviceId,
+        location: deviceLocation,
+        capacity: parseFloat(deviceCapacity),
+        current_amps: 0,
+        status: 'Normal'
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add PowerMon device. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Error adding PowerMon:', error);
+    } else {
+      toast({
+        title: "PowerMon Added",
+        description: "PowerMon device has been added successfully!",
+      });
+      setShowAddPowerMon(false);
+      setDeviceId("");
+      setDeviceLocation("");
+      setDeviceCapacity("");
+      fetchPowerMonDevices();
+    }
   };
 
-  const handleRequestService = () => {
-    toast({
-      title: "Service Requested",
-      description: "Our team will contact you shortly.",
-    });
+  const handleRequestService = async () => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('service_requests')
+      .insert({
+        user_id: user.id,
+        status: 'pending'
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit service request. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Error requesting service:', error);
+    } else {
+      toast({
+        title: "Service Requested",
+        description: "Our team will contact you shortly.",
+      });
+    }
   };
 
   const handleContactAssociate = () => {
@@ -120,7 +233,7 @@ const Dashboard = () => {
   };
 
   const handleCallSupport = () => {
-    window.location.href = "tel:18001234567";
+    window.location.href = "tel:7569373499";
   };
 
   const handleWeatherCheck = async () => {
@@ -258,20 +371,26 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {powerMonData.map((device, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                <div>
-                  <p className="font-medium">{device.device}</p>
-                  <p className="text-sm text-muted-foreground">{device.location}</p>
+            {powerMonDevices.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No PowerMon devices added yet. Click "Add PowerMons" to get started.
+              </p>
+            ) : (
+              powerMonDevices.map((device, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div>
+                    <p className="font-medium">{device.device_id}</p>
+                    <p className="text-sm text-muted-foreground">{device.location}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">{device.current_amps || 0}A</p>
+                    <Badge variant={device.status === "Normal" ? "secondary" : device.status === "High" ? "destructive" : "outline"}>
+                      {device.status}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold">{device.amps}</p>
-                  <Badge variant={device.status === "Normal" ? "secondary" : device.status === "High" ? "destructive" : "outline"}>
-                    {device.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -325,7 +444,7 @@ const Dashboard = () => {
           <CardContent className="p-4">
             <Button className="w-full" size="lg" onClick={handleCallSupport}>
               <Phone className="h-5 w-5 mr-2" />
-              Call Support: 1800-123-4567
+              Call Support: 7569373499
             </Button>
           </CardContent>
         </Card>
@@ -340,15 +459,34 @@ const Dashboard = () => {
           <form onSubmit={handleAddFarm} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="farmName">Farm Name</Label>
-              <Input id="farmName" placeholder="Enter farm name" required />
+              <Input 
+                id="farmName" 
+                placeholder="Enter farm name" 
+                value={farmName}
+                onChange={(e) => setFarmName(e.target.value)}
+                required 
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
-              <Input id="location" placeholder="Enter location" required />
+              <Input 
+                id="location" 
+                placeholder="Enter location" 
+                value={farmLocation}
+                onChange={(e) => setFarmLocation(e.target.value)}
+                required 
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="ponds">Number of Ponds</Label>
-              <Input id="ponds" type="number" placeholder="Enter number of ponds" required />
+              <Input 
+                id="ponds" 
+                type="number" 
+                placeholder="Enter number of ponds" 
+                value={farmPonds}
+                onChange={(e) => setFarmPonds(e.target.value)}
+                required 
+              />
             </div>
             <Button type="submit" className="w-full">Add Farm</Button>
           </form>
@@ -364,15 +502,35 @@ const Dashboard = () => {
           <form onSubmit={handleAddPowerMon} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="deviceId">Device ID</Label>
-              <Input id="deviceId" placeholder="Enter device ID" required />
+              <Input 
+                id="deviceId" 
+                placeholder="Enter device ID" 
+                value={deviceId}
+                onChange={(e) => setDeviceId(e.target.value)}
+                required 
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="deviceLocation">Location</Label>
-              <Input id="deviceLocation" placeholder="e.g., Pond 1-3" required />
+              <Input 
+                id="deviceLocation" 
+                placeholder="e.g., Pond 1-3" 
+                value={deviceLocation}
+                onChange={(e) => setDeviceLocation(e.target.value)}
+                required 
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="capacity">Capacity (Amps)</Label>
-              <Input id="capacity" type="number" step="0.1" placeholder="Enter capacity" required />
+              <Input 
+                id="capacity" 
+                type="number" 
+                step="0.1" 
+                placeholder="Enter capacity" 
+                value={deviceCapacity}
+                onChange={(e) => setDeviceCapacity(e.target.value)}
+                required 
+              />
             </div>
             <Button type="submit" className="w-full">Add Device</Button>
           </form>

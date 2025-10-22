@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      farms: {
+        Row: {
+          created_at: string
+          farm_name: string
+          id: string
+          location: string
+          number_of_ponds: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          farm_name: string
+          id?: string
+          location: string
+          number_of_ponds: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          farm_name?: string
+          id?: string
+          location?: string
+          number_of_ponds?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      powermon_devices: {
+        Row: {
+          capacity: number
+          created_at: string
+          current_amps: number | null
+          device_id: string
+          id: string
+          location: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capacity: number
+          created_at?: string
+          current_amps?: number | null
+          device_id: string
+          id?: string
+          location: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          current_amps?: number | null
+          device_id?: string
+          id?: string
+          location?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -35,6 +101,27 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      service_requests: {
+        Row: {
+          created_at: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string | null
+          user_id?: string
         }
         Relationships: []
       }
