@@ -227,7 +227,7 @@ const Dashboard = () => {
                 <Fish className="h-5 w-5" />
                 Crop Progress
               </div>
-              <Button size="sm" variant="outline" onClick={() => setShowWeatherMap(true)}>
+              <Button size="sm" variant="outline" onClick={() => window.open('https://zoom.earth/maps/temperature/#view=28.2,84.6,4.66z/model=icon', '_blank')}>
                 <Cloud className="h-4 w-4 mr-2" />
                 Weather Map
               </Button>
