@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import FAQ from "./pages/FAQ";
 import Farm from "./pages/Farm";
 import Aquapedia from "./pages/Aquapedia";
 import Calculators from "./pages/Calculators";
@@ -27,6 +29,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/farm" element={<Farm />} />
             <Route path="/aquapedia" element={<Aquapedia />} />
             <Route path="/calculators" element={<Calculators />} />

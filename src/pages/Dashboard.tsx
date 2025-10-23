@@ -39,6 +39,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<any>(null);
   const [farms, setFarms] = useState<any[]>([]);
   const [powerMonDevices, setPowerMonDevices] = useState<any[]>([]);
+  const [shrimpRates, setShrimpRates] = useState<any[]>([]);
   const [farmName, setFarmName] = useState("");
   const [farmLocation, setFarmLocation] = useState("");
   const [farmPonds, setFarmPonds] = useState("");
@@ -56,6 +57,7 @@ const Dashboard = () => {
       fetchProfile();
       fetchFarms();
       fetchPowerMonDevices();
+      fetchShrimpRates();
     }
   }, [user, loading, navigate]);
   
@@ -102,6 +104,27 @@ const Dashboard = () => {
       console.error('Error fetching PowerMon devices:', error);
     } else {
       setPowerMonDevices(data || []);
+    }
+  };
+
+  const fetchShrimpRates = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    try {
+      const { data, error } = await supabase
+        .from('shrimp_rates' as any)
+        .select('*')
+        .eq('location', 'Bhimavaram')
+        .eq('date', today)
+        .order('count_range');
+      
+      if (error) {
+        console.error('Error fetching shrimp rates:', error);
+      } else {
+        setShrimpRates(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching shrimp rates:', error);
     }
   };
 
@@ -292,7 +315,7 @@ const Dashboard = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => setShowProfile(true)} 
+              onClick={() => navigate("/profile")} 
               className="bg-white/10 text-white border-white/20 hover:bg-white/20"
             >
               <User className="h-4 w-4 mr-2" />
@@ -390,6 +413,39 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Shrimp Rates */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Today's Shrimp Rates - Bhimavaram
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {shrimpRates.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No rates available for today. Check back later.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {shrimpRates.map((rate, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div>
+                      <p className="font-medium">Count: {rate.count_range}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(rate.date).toLocaleDateString('en-IN')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-primary">₹{rate.rate_per_kg}/kg</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
