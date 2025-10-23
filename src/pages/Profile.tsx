@@ -279,14 +279,14 @@ const Profile = () => {
           <TabsContent value="about">
             <Card>
               <CardHeader>
-                <CardTitle>About AquaFarm Pro</CardTitle>
+                <CardTitle>About Gangaputra</CardTitle>
                 <CardDescription>Our Story and Mission</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="prose prose-sm max-w-none">
                   <h3 className="text-lg font-semibold mb-3">Our Founder</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    AquaFarm Pro is a startup website created by <strong>Bestha Lakshminarasimha</strong>, 
+                    Gangaputra is a startup website created by <strong>Bestha Lakshminarasimha</strong>, 
                     a passionate B.Tech student with a deep interest in aquaculture and sustainable farming practices.
                   </p>
 
