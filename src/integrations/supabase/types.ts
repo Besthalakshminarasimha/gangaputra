@@ -125,6 +125,36 @@ export type Database = {
         }
         Relationships: []
       }
+      shrimp_rates: {
+        Row: {
+          count_range: string
+          created_at: string
+          date: string
+          id: string
+          location: string
+          rate_per_kg: number
+          updated_at: string
+        }
+        Insert: {
+          count_range: string
+          created_at?: string
+          date?: string
+          id?: string
+          location?: string
+          rate_per_kg: number
+          updated_at?: string
+        }
+        Update: {
+          count_range?: string
+          created_at?: string
+          date?: string
+          id?: string
+          location?: string
+          rate_per_kg?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
