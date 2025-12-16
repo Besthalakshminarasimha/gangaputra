@@ -1,1 +1,7 @@
 project_id = "whdgqppeitkjdezdjalb"
+
+[functions.ai-chat]
+verify_jwt = false
+
+[functions.fetch-aqua-news]
+verify_jwt = false
