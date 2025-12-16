@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.fetch-aqua-news]
 verify_jwt = false
+
+[functions.fetch-shrimp-rates]
+verify_jwt = false
