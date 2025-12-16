@@ -13,7 +13,8 @@ import {
   FileText, 
   Cloud, 
   Ship,
-  FlaskConical
+  FlaskConical,
+  ExternalLink
 } from "lucide-react";
 
 interface NewsItem {
@@ -23,6 +24,7 @@ interface NewsItem {
   source: string;
   category: string;
   date: string;
+  url?: string;
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -147,7 +149,9 @@ const AquaNews = () => {
           {news.map((item) => (
             <Card 
               key={item.id} 
-              className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+              className="overflow-hidden hover:shadow-md transition-shadow group"
+              onClick={() => item.url && window.open(item.url, '_blank')}
+              style={{ cursor: item.url ? 'pointer' : 'default' }}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -168,9 +172,14 @@ const AquaNews = () => {
                 <p className="text-sm text-muted-foreground line-clamp-3">
                   {item.summary}
                 </p>
-                <p className="text-xs text-muted-foreground mt-3 font-medium">
-                  Source: {item.source}
-                </p>
+                <div className="flex items-center justify-between mt-3">
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Source: {item.source}
+                  </p>
+                  {item.url && (
+                    <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
