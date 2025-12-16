@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import AquaNews from "@/components/AquaNews";
 import { 
   Search, 
   MapPin, 
@@ -16,7 +17,8 @@ import {
   Fish, 
   Pill, 
   Filter,
-  ExternalLink
+  ExternalLink,
+  Newspaper
 } from "lucide-react";
 
 const Aquapedia = () => {
@@ -400,11 +402,20 @@ const Aquapedia = () => {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="hatcheries" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="news" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="news" className="gap-1">
+              <Newspaper className="h-4 w-4" />
+              News
+            </TabsTrigger>
             <TabsTrigger value="hatcheries">Hatcheries</TabsTrigger>
-            <TabsTrigger value="medicines">CAA Medicines</TabsTrigger>
+            <TabsTrigger value="medicines">Medicines</TabsTrigger>
           </TabsList>
+
+          {/* News Tab */}
+          <TabsContent value="news" className="space-y-4 mt-4">
+            <AquaNews />
+          </TabsContent>
 
           {/* Hatcheries Tab */}
           <TabsContent value="hatcheries" className="space-y-4">
