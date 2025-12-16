@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import AquaNews from "@/components/AquaNews";
+import Community from "@/components/Community";
 import { 
   Search, 
   MapPin, 
@@ -18,7 +19,8 @@ import {
   Pill, 
   Filter,
   ExternalLink,
-  Newspaper
+  Newspaper,
+  Users
 } from "lucide-react";
 
 const Aquapedia = () => {
@@ -403,18 +405,27 @@ const Aquapedia = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="news" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="news" className="gap-1">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="news" className="gap-1 text-xs sm:text-sm">
               <Newspaper className="h-4 w-4" />
-              News
+              <span className="hidden sm:inline">News</span>
             </TabsTrigger>
-            <TabsTrigger value="hatcheries">Hatcheries</TabsTrigger>
-            <TabsTrigger value="medicines">Medicines</TabsTrigger>
+            <TabsTrigger value="community" className="gap-1 text-xs sm:text-sm">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Community</span>
+            </TabsTrigger>
+            <TabsTrigger value="hatcheries" className="text-xs sm:text-sm">Hatcheries</TabsTrigger>
+            <TabsTrigger value="medicines" className="text-xs sm:text-sm">Medicines</TabsTrigger>
           </TabsList>
 
           {/* News Tab */}
           <TabsContent value="news" className="space-y-4 mt-4">
             <AquaNews />
+          </TabsContent>
+
+          {/* Community Tab */}
+          <TabsContent value="community" className="space-y-4 mt-4">
+            <Community />
           </TabsContent>
 
           {/* Hatcheries Tab */}
