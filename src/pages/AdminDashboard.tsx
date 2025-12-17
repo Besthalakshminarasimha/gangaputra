@@ -1,0 +1,161 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { Shield, LogOut, Package, Users, Database } from "lucide-react";
+import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
+import AdminUsersTable from "@/components/admin/AdminUsersTable";
+
+const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [stats, setStats] = useState({
+    totalRequests: 0,
+    pendingRequests: 0,
+    totalUsers: 0,
+  });
+
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        navigate("/admin");
+        return;
+      }
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!roleData) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have admin privileges.",
+          variant: "destructive",
+        });
+        navigate("/admin");
+        return;
+      }
+
+      setIsAdmin(true);
+      fetchStats();
+      setIsLoading(false);
+    };
+
+    checkAdminAccess();
+  }, [navigate, toast]);
+
+  const fetchStats = async () => {
+    // Fetch request stats
+    const { data: requests } = await supabase
+      .from('sell_crop_requests')
+      .select('id, status');
+    
+    // Fetch user count
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id');
+
+    setStats({
+      totalRequests: requests?.length || 0,
+      pendingRequests: requests?.filter(r => r.status === 'pending').length || 0,
+      totalUsers: profiles?.length || 0,
+    });
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/admin");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Verifying admin access...</p>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b border-border sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-bold">GANGAPUTRA Admin</h1>
+          </div>
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalRequests}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
+              <Database className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-500">{stats.pendingRequests}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="requests" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="requests">Sell Crop Requests</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="requests">
+            <AdminRequestsTable onUpdate={fetchStats} />
+          </TabsContent>
+          
+          <TabsContent value="users">
+            <AdminUsersTable />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+};
+
+export default AdminDashboard;

@@ -224,6 +224,66 @@ export type Database = {
         }
         Relationships: []
       }
+      sell_crop_requests: {
+        Row: {
+          address: string
+          admin_notes: string | null
+          count: number
+          created_at: string
+          crop_type: string
+          district: string
+          expected_price_per_kg: number | null
+          id: string
+          phone_number: string | null
+          pickup_date: string
+          preferred_contact_time: string | null
+          quantity_tons: number
+          state: string
+          status: string
+          total_value_estimate: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          admin_notes?: string | null
+          count: number
+          created_at?: string
+          crop_type: string
+          district: string
+          expected_price_per_kg?: number | null
+          id?: string
+          phone_number?: string | null
+          pickup_date: string
+          preferred_contact_time?: string | null
+          quantity_tons: number
+          state: string
+          status?: string
+          total_value_estimate?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          admin_notes?: string | null
+          count?: number
+          created_at?: string
+          crop_type?: string
+          district?: string
+          expected_price_per_kg?: number | null
+          id?: string
+          phone_number?: string | null
+          pickup_date?: string
+          preferred_contact_time?: string | null
+          quantity_tons?: number
+          state?: string
+          status?: string
+          total_value_estimate?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       service_requests: {
         Row: {
           created_at: string
@@ -275,15 +335,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -410,6 +497,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

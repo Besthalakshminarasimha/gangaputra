@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, Phone, CalendarIcon, ChevronRight, ChevronLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ShoppingCart, Phone, CalendarIcon, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -23,9 +24,16 @@ const CROPS = [
   "IMC (Indian Major Carps)",
 ];
 
-const COUNT_OPTIONS = Array.from({ length: 10 }, (_, i) => (i + 1) * 10); // 10, 20, 30... 100
+const COUNT_OPTIONS = Array.from({ length: 10 }, (_, i) => (i + 1) * 10);
 
 const QUANTITY_OPTIONS = [1, 2, 3, 5, 10, 15, 20, 25, 30, 50];
+
+const CONTACT_TIME_OPTIONS = [
+  "Morning (8 AM - 12 PM)",
+  "Afternoon (12 PM - 4 PM)",
+  "Evening (4 PM - 8 PM)",
+  "Anytime",
+];
 
 const STATES_DISTRICTS: Record<string, string[]> = {
   "Andhra Pradesh": ["East Godavari", "West Godavari", "Krishna", "Guntur", "Prakasam", "Nellore", "Visakhapatnam", "Srikakulam"],
@@ -40,6 +48,7 @@ const TradeSection = () => {
   const { toast } = useToast();
   const [showSellDialog, setShowSellDialog] = useState(false);
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form data
   const [selectedCrop, setSelectedCrop] = useState("");
@@ -51,6 +60,10 @@ const TradeSection = () => {
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
   const [address, setAddress] = useState("");
+  // New fields
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [contactTime, setContactTime] = useState("");
+  const [expectedPrice, setExpectedPrice] = useState("");
 
   const resetForm = () => {
     setStep(1);
@@ -63,6 +76,9 @@ const TradeSection = () => {
     setState("");
     setDistrict("");
     setAddress("");
+    setPhoneNumber("");
+    setContactTime("");
+    setExpectedPrice("");
   };
 
   const handleCallUs = () => {
@@ -102,17 +118,60 @@ const TradeSection = () => {
     setStep(step - 1);
   };
 
-  const handleSendRequest = () => {
-    const finalCount = count === "manual" ? customCount : count;
-    const finalQuantity = quantity === "manual" ? customQuantity : quantity;
-    
-    toast({
-      title: "Request Sent Successfully!",
-      description: `We will pick up ${finalQuantity} tons of ${selectedCrop} (Count: ${finalCount}) from ${district}, ${state} on ${pickupDate ? format(pickupDate, "PPP") : ""}.`,
-    });
-    
-    setShowSellDialog(false);
-    resetForm();
+  const handleSendRequest = async () => {
+    const finalCount = count === "manual" ? parseInt(customCount) : parseInt(count);
+    const finalQuantity = quantity === "manual" ? parseFloat(customQuantity) : parseFloat(quantity);
+    const pricePerKg = expectedPrice ? parseFloat(expectedPrice) : null;
+    const totalEstimate = pricePerKg && finalQuantity ? pricePerKg * finalQuantity * 1000 : null;
+
+    setIsSubmitting(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "Please login to submit a request.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.from('sell_crop_requests').insert({
+        user_id: user.id,
+        crop_type: selectedCrop,
+        count: finalCount,
+        quantity_tons: finalQuantity,
+        pickup_date: pickupDate ? format(pickupDate, "yyyy-MM-dd") : "",
+        state,
+        district,
+        address,
+        phone_number: phoneNumber || null,
+        preferred_contact_time: contactTime || null,
+        expected_price_per_kg: pricePerKg,
+        total_value_estimate: totalEstimate,
+        status: "pending",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Request Sent Successfully!",
+        description: `Your request to sell ${finalQuantity} tons of ${selectedCrop} has been submitted. We will contact you soon.`,
+      });
+      
+      setShowSellDialog(false);
+      resetForm();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStepContent = () => {
@@ -290,10 +349,57 @@ const TradeSection = () => {
             )}
           </div>
         );
+      case 6:
+        return (
+          <div className="space-y-4">
+            <Label className="text-lg font-semibold">Contact & Pricing Details (Optional)</Label>
+            
+            <div className="space-y-2">
+              <Label>Phone Number</Label>
+              <Input
+                type="tel"
+                placeholder="Enter your phone number"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Preferred Contact Time</Label>
+              <Select value={contactTime} onValueChange={setContactTime}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select preferred time" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTACT_TIME_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Expected Price per Kg (₹)</Label>
+              <Input
+                type="number"
+                placeholder="Enter expected price per kg"
+                value={expectedPrice}
+                onChange={(e) => setExpectedPrice(e.target.value)}
+              />
+              {expectedPrice && quantity && (
+                <p className="text-sm text-muted-foreground">
+                  Estimated Total: ₹{(parseFloat(expectedPrice) * (quantity === "manual" ? parseFloat(customQuantity || "0") : parseFloat(quantity)) * 1000).toLocaleString()}
+                </p>
+              )}
+            </div>
+          </div>
+        );
       default:
         return null;
     }
   };
+
+  const totalSteps = 6;
 
   return (
     <>
@@ -328,7 +434,7 @@ const TradeSection = () => {
       <Dialog open={showSellDialog} onOpenChange={(open) => { if (!open) handleCancel(); else setShowSellDialog(true); }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Sell Your Crop - Step {step} of 5</DialogTitle>
+            <DialogTitle>Sell Your Crop - Step {step} of {totalSteps}</DialogTitle>
           </DialogHeader>
           
           <div className="py-4">
@@ -337,22 +443,29 @@ const TradeSection = () => {
           
           <DialogFooter className="flex gap-2">
             {step > 1 && (
-              <Button variant="outline" onClick={handleBack}>
+              <Button variant="outline" onClick={handleBack} disabled={isSubmitting}>
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
             )}
-            <Button variant="outline" onClick={handleCancel}>
+            <Button variant="outline" onClick={handleCancel} disabled={isSubmitting}>
               Cancel
             </Button>
-            {step < 5 ? (
+            {step < totalSteps ? (
               <Button onClick={handleNext}>
                 Next
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             ) : (
-              <Button onClick={handleSendRequest}>
-                Send Request
+              <Button onClick={handleSendRequest} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Send Request"
+                )}
               </Button>
             )}
           </DialogFooter>

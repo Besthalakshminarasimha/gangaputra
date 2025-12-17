@@ -12,6 +12,8 @@ import Farm from "./pages/Farm";
 import Aquapedia from "./pages/Aquapedia";
 import Calculators from "./pages/Calculators";
 import Store from "./pages/Store";
+import AdminAuth from "./pages/AdminAuth";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import BottomNavigation from "./components/BottomNavigation";
 import AIAssistant from "./components/AIAssistant";
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/aquapedia" element={<Aquapedia />} />
             <Route path="/calculators" element={<Calculators />} />
             <Route path="/store" element={<Store />} />
+            <Route path="/admin" element={<AdminAuth />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
