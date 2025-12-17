@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import ShrimpRatesCard from "@/components/ShrimpRatesCard";
+import TradeSection from "@/components/TradeSection";
 import { 
   Fish, 
   Zap, 
@@ -420,6 +421,9 @@ const Dashboard = () => {
 
         {/* Shrimp Rates - New Pan-India Component */}
         <ShrimpRatesCard />
+
+        {/* Trade Section */}
+        <TradeSection />
 
         {/* Alarms */}
         <Card>
