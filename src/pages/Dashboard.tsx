@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import ShrimpRatesCard from "@/components/ShrimpRatesCard";
 import TradeSection from "@/components/TradeSection";
+import MyTradeRequests from "@/components/MyTradeRequests";
 import { 
   Fish, 
   Zap, 
@@ -424,6 +425,9 @@ const Dashboard = () => {
 
         {/* Trade Section */}
         <TradeSection />
+
+        {/* My Trade Requests */}
+        <MyTradeRequests />
 
         {/* Alarms */}
         <Card>

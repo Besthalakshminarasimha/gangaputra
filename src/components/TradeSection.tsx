@@ -138,6 +138,13 @@ const TradeSection = () => {
         return;
       }
 
+      // Get user profile for email notification
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
       const { error } = await supabase.from('sell_crop_requests').insert({
         user_id: user.id,
         crop_type: selectedCrop,
@@ -155,6 +162,24 @@ const TradeSection = () => {
       });
 
       if (error) throw error;
+
+      // Send email notification to admin (non-blocking)
+      supabase.functions.invoke('send-sell-notification', {
+        body: {
+          crop_type: selectedCrop,
+          count: finalCount,
+          quantity_tons: finalQuantity,
+          pickup_date: pickupDate ? format(pickupDate, "yyyy-MM-dd") : "",
+          state,
+          district,
+          address,
+          phone_number: phoneNumber,
+          preferred_contact_time: contactTime,
+          expected_price_per_kg: pricePerKg,
+          farmer_name: profile?.full_name || 'Unknown',
+          farmer_email: profile?.email || user.email,
+        }
+      }).catch(err => console.error('Email notification error:', err));
 
       toast({
         title: "Request Sent Successfully!",
