@@ -97,6 +97,9 @@ const AdminRequestsTable = ({ onUpdate }: AdminRequestsTableProps) => {
   const handleSaveEdit = async () => {
     if (!selectedRequest) return;
 
+    const oldStatus = selectedRequest.status;
+    const newStatus = editData.status;
+
     const { error } = await supabase
       .from('sell_crop_requests')
       .update({
@@ -119,6 +122,34 @@ const AdminRequestsTable = ({ onUpdate }: AdminRequestsTableProps) => {
       setShowEditDialog(false);
       fetchRequests();
       onUpdate();
+
+      // Send email notification if status changed
+      if (oldStatus !== newStatus) {
+        try {
+          const { error: emailError } = await supabase.functions.invoke('send-status-notification', {
+            body: {
+              requestId: selectedRequest.id,
+              userId: selectedRequest.user_id,
+              cropType: selectedRequest.crop_type,
+              quantityTons: selectedRequest.quantity_tons,
+              oldStatus,
+              newStatus,
+              adminNotes: editData.admin_notes || undefined,
+            },
+          });
+
+          if (emailError) {
+            console.error("Failed to send notification email:", emailError);
+          } else {
+            toast({
+              title: "Notification Sent",
+              description: "User has been notified of the status change.",
+            });
+          }
+        } catch (emailErr) {
+          console.error("Error invoking notification function:", emailErr);
+        }
+      }
     }
   };
 

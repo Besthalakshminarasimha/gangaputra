@@ -4,15 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { Download, FileSpreadsheet, FileText, Loader2, CalendarIcon, Filter } from "lucide-react";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const AdminExport = () => {
   const { toast } = useToast();
   const [exportType, setExportType] = useState<string>("requests");
   const [exportFormat, setExportFormat] = useState<string>("csv");
   const [isExporting, setIsExporting] = useState(false);
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+  const [useDateFilter, setUseDateFilter] = useState(false);
 
   const downloadFile = (content: string, filename: string, mimeType: string) => {
     const blob = new Blob([content], { type: mimeType });
@@ -36,7 +44,6 @@ const AdminExport = () => {
           const value = row[header];
           if (value === null || value === undefined) return '';
           const stringValue = String(value);
-          // Escape quotes and wrap in quotes if contains comma or newline
           if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
             return `"${stringValue.replace(/"/g, '""')}"`;
           }
@@ -54,10 +61,18 @@ const AdminExport = () => {
       let filename = '';
 
       if (exportType === 'requests') {
-        const { data: requests, error } = await supabase
+        let query = supabase
           .from('sell_crop_requests')
           .select('*')
           .order('created_at', { ascending: false });
+
+        if (useDateFilter) {
+          query = query
+            .gte('created_at', startOfDay(dateRange.from).toISOString())
+            .lte('created_at', endOfDay(dateRange.to).toISOString());
+        }
+
+        const { data: requests, error } = await query;
 
         if (error) throw error;
         data = (requests || []).map(r => ({
@@ -80,10 +95,18 @@ const AdminExport = () => {
         }));
         filename = `sell_crop_requests_${format(new Date(), 'yyyyMMdd_HHmmss')}`;
       } else if (exportType === 'users') {
-        const { data: profiles, error } = await supabase
+        let query = supabase
           .from('profiles')
           .select('*')
           .order('created_at', { ascending: false });
+
+        if (useDateFilter) {
+          query = query
+            .gte('created_at', startOfDay(dateRange.from).toISOString())
+            .lte('created_at', endOfDay(dateRange.to).toISOString());
+        }
+
+        const { data: profiles, error } = await query;
 
         if (error) throw error;
         data = (profiles || []).map(p => ({
@@ -99,7 +122,7 @@ const AdminExport = () => {
       if (data.length === 0) {
         toast({
           title: "No Data",
-          description: "No data available to export.",
+          description: "No data available to export for the selected criteria.",
           variant: "destructive",
         });
         return;
@@ -126,6 +149,14 @@ const AdminExport = () => {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleQuickRange = (days: number) => {
+    setDateRange({
+      from: subDays(new Date(), days),
+      to: new Date(),
+    });
+    setUseDateFilter(true);
   };
 
   return (
@@ -167,6 +198,69 @@ const AdminExport = () => {
             </Select>
           </div>
 
+          {/* Date Range Filter */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="useDateFilter"
+                checked={useDateFilter}
+                onChange={(e) => setUseDateFilter(e.target.checked)}
+                className="rounded border-border"
+              />
+              <Label htmlFor="useDateFilter" className="cursor-pointer">Filter by date range</Label>
+            </div>
+            
+            {useDateFilter && (
+              <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="flex-1 min-w-[120px]">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(dateRange.from, "MMM dd, yyyy")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateRange.from}
+                        onSelect={(date) => date && setDateRange(prev => ({ ...prev, from: date }))}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <span className="text-muted-foreground text-sm">to</span>
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="flex-1 min-w-[120px]">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(dateRange.to, "MMM dd, yyyy")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateRange.to}
+                        onSelect={(date) => date && setDateRange(prev => ({ ...prev, to: date }))}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                <div className="flex flex-wrap gap-1">
+                  <Button variant="ghost" size="sm" onClick={() => handleQuickRange(7)} className="text-xs">7 days</Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleQuickRange(30)} className="text-xs">30 days</Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleQuickRange(90)} className="text-xs">90 days</Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleQuickRange(365)} className="text-xs">1 year</Button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <Button onClick={handleExport} disabled={isExporting} className="w-full">
             {isExporting ? (
               <>
@@ -198,6 +292,10 @@ const AdminExport = () => {
           <div>
             <p className="font-medium text-foreground">Users Export</p>
             <p>Includes user profile information: name, email, and registration date.</p>
+          </div>
+          <div>
+            <p className="font-medium text-foreground">Date Range Filter</p>
+            <p>Enable the date filter to export only records within a specific time period. Useful for monthly or quarterly reports.</p>
           </div>
           <div>
             <p className="font-medium text-foreground">CSV Format</p>
