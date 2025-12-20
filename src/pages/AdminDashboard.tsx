@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Shield, LogOut, Package, Users, Database } from "lucide-react";
+import { Shield, LogOut, Package, Users, Database, BarChart3, Download } from "lucide-react";
 import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import AdminExport from "@/components/admin/AdminExport";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -140,9 +142,23 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="requests" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="requests">Sell Crop Requests</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsList className="flex flex-wrap">
+            <TabsTrigger value="requests" className="flex items-center gap-1">
+              <Package className="h-4 w-4" />
+              <span className="hidden sm:inline">Requests</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Users</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-1">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="export" className="flex items-center gap-1">
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="requests">
@@ -151,6 +167,14 @@ const AdminDashboard = () => {
           
           <TabsContent value="users">
             <AdminUsersTable />
+          </TabsContent>
+          
+          <TabsContent value="analytics">
+            <AdminAnalytics />
+          </TabsContent>
+          
+          <TabsContent value="export">
+            <AdminExport />
           </TabsContent>
         </Tabs>
       </main>
