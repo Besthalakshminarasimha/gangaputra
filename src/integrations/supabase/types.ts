@@ -49,6 +49,111 @@ export type Database = {
           },
         ]
       }
+      crop_manuals: {
+        Row: {
+          content: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_urls: string[] | null
+          name: string
+          slug: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          name: string
+          slug: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          name?: string
+          slug?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      daily_updates: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          message: string
+          target_audience: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          message: string
+          target_audience?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          target_audience?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      diseases: {
+        Row: {
+          category: Database["public"]["Enums"]["disease_category"]
+          created_at: string
+          description: string | null
+          id: string
+          image_urls: string[] | null
+          name: string
+          prevention: string | null
+          symptoms: string | null
+          treatment: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["disease_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          name: string
+          prevention?: string | null
+          symptoms?: string | null
+          treatment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["disease_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          name?: string
+          prevention?: string | null
+          symptoms?: string | null
+          treatment?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       farms: {
         Row: {
           created_at: string
@@ -76,6 +181,42 @@ export type Database = {
           number_of_ponds?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      magazines: {
+        Row: {
+          content: string | null
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          pdf_url: string | null
+          published_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          pdf_url?: string | null
+          published_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          pdf_url?: string | null
+          published_date?: string | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -112,6 +253,51 @@ export type Database = {
           status?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          discount_price: number | null
+          id: string
+          image_urls: string[] | null
+          in_stock: boolean | null
+          name: string
+          price: number
+          specifications: Json | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          discount_price?: number | null
+          id?: string
+          image_urls?: string[] | null
+          in_stock?: boolean | null
+          name: string
+          price: number
+          specifications?: Json | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          discount_price?: number | null
+          id?: string
+          image_urls?: string[] | null
+          in_stock?: boolean | null
+          name?: string
+          price?: number
+          specifications?: Json | null
+          updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -371,6 +557,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      content_category: "disease" | "magazine" | "crop_manual" | "product"
+      disease_category: "shrimp" | "fish"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -499,6 +687,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      content_category: ["disease", "magazine", "crop_manual", "product"],
+      disease_category: ["shrimp", "fish"],
     },
   },
 } as const
