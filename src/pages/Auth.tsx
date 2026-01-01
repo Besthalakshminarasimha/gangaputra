@@ -280,10 +280,11 @@ const Auth = () => {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="text-center text-sm text-muted-foreground">
+        <CardFooter className="flex flex-col gap-2 text-center text-sm text-muted-foreground">
           <p className="w-full">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
+          <a href="/admin" className="text-primary hover:underline text-xs">Admin Login</a>
         </CardFooter>
       </Card>
     </div>

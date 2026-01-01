@@ -5,11 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Shield, LogOut, Package, Users, Database, BarChart3, Download } from "lucide-react";
+import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell } from "lucide-react";
 import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminExport from "@/components/admin/AdminExport";
+import AdminDiseases from "@/components/admin/AdminDiseases";
+import AdminMagazines from "@/components/admin/AdminMagazines";
+import AdminCropManuals from "@/components/admin/AdminCropManuals";
+import AdminProducts from "@/components/admin/AdminProducts";
+import AdminDailyUpdates from "@/components/admin/AdminDailyUpdates";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -142,40 +147,27 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="requests" className="space-y-4">
-          <TabsList className="flex flex-wrap">
-            <TabsTrigger value="requests" className="flex items-center gap-1">
-              <Package className="h-4 w-4" />
-              <span className="hidden sm:inline">Requests</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-1">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="export" className="flex items-center gap-1">
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export</span>
-            </TabsTrigger>
+          <TabsList className="flex flex-wrap gap-1">
+            <TabsTrigger value="requests"><Package className="h-4 w-4 mr-1" />Requests</TabsTrigger>
+            <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Users</TabsTrigger>
+            <TabsTrigger value="diseases"><Bug className="h-4 w-4 mr-1" />Diseases</TabsTrigger>
+            <TabsTrigger value="magazines"><BookOpen className="h-4 w-4 mr-1" />Magazines</TabsTrigger>
+            <TabsTrigger value="manuals"><FileText className="h-4 w-4 mr-1" />Manuals</TabsTrigger>
+            <TabsTrigger value="products"><ShoppingBag className="h-4 w-4 mr-1" />Products</TabsTrigger>
+            <TabsTrigger value="updates"><Bell className="h-4 w-4 mr-1" />Updates</TabsTrigger>
+            <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" />Analytics</TabsTrigger>
+            <TabsTrigger value="export"><Download className="h-4 w-4 mr-1" />Export</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="requests">
-            <AdminRequestsTable onUpdate={fetchStats} />
-          </TabsContent>
-          
-          <TabsContent value="users">
-            <AdminUsersTable />
-          </TabsContent>
-          
-          <TabsContent value="analytics">
-            <AdminAnalytics />
-          </TabsContent>
-          
-          <TabsContent value="export">
-            <AdminExport />
-          </TabsContent>
+          <TabsContent value="requests"><AdminRequestsTable onUpdate={fetchStats} /></TabsContent>
+          <TabsContent value="users"><AdminUsersTable /></TabsContent>
+          <TabsContent value="diseases"><AdminDiseases /></TabsContent>
+          <TabsContent value="magazines"><AdminMagazines /></TabsContent>
+          <TabsContent value="manuals"><AdminCropManuals /></TabsContent>
+          <TabsContent value="products"><AdminProducts /></TabsContent>
+          <TabsContent value="updates"><AdminDailyUpdates /></TabsContent>
+          <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
+          <TabsContent value="export"><AdminExport /></TabsContent>
         </Tabs>
       </main>
     </div>

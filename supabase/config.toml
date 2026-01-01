@@ -14,3 +14,12 @@ verify_jwt = false
 
 [functions.send-status-notification]
 verify_jwt = false
+
+[functions.send-sms-notification]
+verify_jwt = false
+
+[functions.text-to-speech]
+verify_jwt = false
+
+[functions.notify-admin-sell-request]
+verify_jwt = false
