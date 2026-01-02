@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Search, 
   ShoppingCart, 
@@ -15,25 +16,67 @@ import {
   Minus,
   CreditCard,
   Smartphone,
-  X
+  X,
+  Loader2,
+  Play
 } from "lucide-react";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  discount_price: number | null;
+  category: string | null;
+  image_urls: string[];
+  video_url: string | null;
+  in_stock: boolean;
+  specifications: any;
+}
 
 const Store = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [cart, setCart] = useState<{[key: string]: number}>({});
   const [showCart, setShowCart] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate("/auth");
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
 
-  if (loading) {
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive"
+      });
+    } else {
+      setProducts(data || []);
+    }
+    setLoading(false);
+  };
+
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Loading...</p>
@@ -57,236 +100,9 @@ const Store = () => {
     { id: "electrical", name: "Electrical", icon: "⚡" },
   ];
 
-  const products = [
-    {
-      id: "1",
-      name: "2HP Shrimp Farming Aerator",
-      category: "aerators",
-      price: 34000,
-      originalPrice: 38000,
-      rating: 4.8,
-      reviews: 156,
-      image: "💨",
-      description: "Surface Floating Aerator, Up to 27m Visible Flow, 2.5-2.8 kg O2/hrs",
-      inStock: true,
-      featured: true,
-      url: "https://www.indiamart.com/proddetail/2hp-shrimp-farming-aerator-6453643888.html"
-    },
-    {
-      id: "2",
-      name: "Fish Pond Shrimp Prawn Aerator",
-      category: "aerators",
-      price: 26000,
-      originalPrice: 29000,
-      rating: 4.6,
-      reviews: 89,
-      image: "💨",
-      description: "1 HP Portable Aerator, 1.3-1.5 Kg O2/Hr, SS 304 Grade",
-      inStock: true,
-      featured: false,
-      url: "https://www.indiamart.com/proddetail/fish-pond-shrimp-prawn-aerator-20621069730.html"
-    },
-    {
-      id: "3",
-      name: "Paddle Wheel Aerator 1HP",
-      category: "aerators",
-      price: 28000,
-      originalPrice: 32000,
-      rating: 4.5,
-      reviews: 134,
-      image: "💨",
-      description: "High efficiency paddle wheel aerator for aquaculture ponds",
-      inStock: true,
-      featured: false,
-      url: "https://dir.indiamart.com/impcat/paddle-wheel-aerator.html"
-    },
-    {
-      id: "4",
-      name: "Vannamei Shrimp Feed - Premium",
-      category: "feed",
-      price: 55,
-      originalPrice: 60,
-      rating: 4.7,
-      reviews: 342,
-      image: "🦐",
-      description: "High protein Vannamei feed, 29% protein, 1.5mm pellet size - Per Kg",
-      inStock: true,
-      featured: true,
-      url: "https://www.exportersindia.com/indian-suppliers/shrimp-feed.htm"
-    },
-    {
-      id: "5",
-      name: "Vannamei Feed - Standard",
-      category: "feed",
-      price: 48,
-      originalPrice: 52,
-      rating: 4.5,
-      reviews: 267,
-      image: "🦐",
-      description: "Quality Vannamei shrimp feed for optimal growth - Per Kg",
-      inStock: true,
-      featured: false,
-      url: "https://dir.indiamart.com/chennai/shrimp-feed.html"
-    },
-    {
-      id: "6",
-      name: "Aquaculture Water Testing Kit",
-      category: "test-kits",
-      price: 2870,
-      originalPrice: 3200,
-      rating: 4.6,
-      reviews: 178,
-      image: "🔬",
-      description: "Complete water testing kit with pH, DO, Ammonia, Nitrite tests",
-      inStock: true,
-      featured: true,
-      url: "https://www.indiamart.com/proddetail/aquaculture-water-testing-kit-3726374762.html"
-    },
-    {
-      id: "7",
-      name: "API Pond Master Test Kit",
-      category: "test-kits",
-      price: 1850,
-      originalPrice: 2100,
-      rating: 4.4,
-      reviews: 156,
-      image: "🔬",
-      description: "Portable water testing kit with color comparing chart",
-      inStock: true,
-      featured: false,
-      url: "https://www.indiamart.com/proddetail/api-pond-master-test-kit-24260360730.html"
-    },
-    {
-      id: "8",
-      name: "Dissolved Oxygen Test Kit",
-      category: "test-kits",
-      price: 950,
-      originalPrice: 1100,
-      rating: 4.3,
-      reviews: 98,
-      image: "🔬",
-      description: "Professional DO testing kit for aquaculture",
-      inStock: true,
-      featured: false,
-      url: "https://dir.indiamart.com/impcat/dissolved-oxygen-test-kit.html"
-    },
-    {
-      id: "9",
-      name: "Aqua Probiotic Liquid (Power PS)",
-      category: "medicine",
-      price: 850,
-      originalPrice: 950,
-      rating: 4.6,
-      reviews: 234,
-      image: "💊",
-      description: "Shrimp probiotic liquid for gut health and disease prevention - 1L",
-      inStock: true,
-      featured: true,
-      url: "https://www.indiamart.com/proddetail/aqua-shrimp-probiotic-liquid-power-ps-24225948191.html"
-    },
-    {
-      id: "10",
-      name: "Probiotics for Vannamei Shrimp",
-      category: "medicine",
-      price: 1200,
-      originalPrice: 1400,
-      rating: 4.7,
-      reviews: 189,
-      image: "💊",
-      description: "Specialized probiotics for Vannamei shrimp aquaculture - 1kg",
-      inStock: true,
-      featured: true,
-      url: "https://www.indiamart.com/proddetail/probiotics-for-vennamai-shrimp-in-aquaculture-23295263630.html"
-    },
-    {
-      id: "11",
-      name: "Aqua Gut Pro Probiotics",
-      category: "medicine",
-      price: 980,
-      originalPrice: 1150,
-      rating: 4.5,
-      reviews: 167,
-      image: "💊",
-      description: "Gut health optimizer probiotic for shrimp farming - 500g",
-      inStock: true,
-      featured: false,
-      url: "https://www.indiamart.com/proddetail/aqua-gut-pro-pr-probiotics-18688209062.html"
-    },
-    {
-      id: "12",
-      name: "Microbial Antibiotic Alternative",
-      category: "medicine",
-      price: 1450,
-      originalPrice: 1650,
-      rating: 4.4,
-      reviews: 145,
-      image: "💊",
-      description: "Natural alternative to antibiotics for fish and shrimp - 1kg",
-      inStock: false,
-      featured: false,
-      url: "https://www.indiamart.com/proddetail/microbial-alternative-to-antibiotics-in-fish-and-shrimp-farming-2855763808655.html"
-    },
-    {
-      id: "13",
-      name: "Aqua Minerals Mix",
-      category: "minerals",
-      price: 680,
-      originalPrice: 750,
-      rating: 4.5,
-      reviews: 203,
-      image: "⚡",
-      description: "Essential mineral supplement for shrimp growth - 5kg",
-      inStock: true,
-      featured: false,
-      url: "https://dir.indiamart.com/impcat/shrimp-feed.html"
-    },
-    {
-      id: "14",
-      name: "Calcium Mineral Supplement",
-      category: "minerals",
-      price: 520,
-      originalPrice: 600,
-      rating: 4.3,
-      reviews: 167,
-      image: "⚡",
-      description: "Calcium enriched mineral for shell hardening - 10kg",
-      inStock: true,
-      featured: false,
-      url: "https://dir.indiamart.com/impcat/shrimp-feed.html"
-    },
-    {
-      id: "15",
-      name: "Aqua Disinfectant Powder",
-      category: "disinfectants",
-      price: 780,
-      originalPrice: 850,
-      rating: 4.4,
-      reviews: 189,
-      image: "🧽",
-      description: "Pond disinfectant for disease control - 5kg",
-      inStock: true,
-      featured: false,
-      url: "https://dir.indiamart.com/impcat/water-testing-equipment.html"
-    },
-    {
-      id: "16",
-      name: "Chlorine Dioxide Disinfectant",
-      category: "disinfectants",
-      price: 920,
-      originalPrice: 1050,
-      rating: 4.6,
-      reviews: 156,
-      image: "🧽",
-      description: "Powerful water disinfectant for aquaculture - 1L",
-      inStock: true,
-      featured: false,
-      url: "https://dir.indiamart.com/impcat/water-testing-equipment.html"
-    }
-  ];
-
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchQuery.toLowerCase());
+                         (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -312,7 +128,8 @@ const Store = () => {
   const getTotalAmount = () => {
     return Object.entries(cart).reduce((total, [productId, count]) => {
       const product = products.find(p => p.id === productId);
-      return total + (product ? product.price * count : 0);
+      const price = product?.discount_price || product?.price || 0;
+      return total + (price * count);
     }, 0);
   };
 
@@ -327,14 +144,11 @@ const Store = () => {
     }
     
     toast({
-      title: "Redirecting to IndiaMART",
-      description: "Taking you to complete your purchase...",
+      title: "Order Placed",
+      description: "Your order has been placed successfully! We will contact you soon.",
     });
-    
-    setTimeout(() => {
-      window.open("https://dir.indiamart.com/search.mp?ss=aqua+&prdsrc=1&v=4&mcatid=&catid=&crs=xnh-city&trc=xim&cq=Bengaluru&tags=res:RC3|ktp:N0|mtp:S|wc:1|lcf:3|cq:bengaluru|qr_nm:gl-gd|cs:16997|com-cf:nl|ptrs:na|mc:156180|cat:13|qry_typ:P|lang:en|tyr:1|qrd:251018|mrd:251004|prdt:251021|msf:hs|pfen:1|gli:G0I0|gc:Bengaluru|ic:Bengaluru|scw:1", "_blank");
-      setShowCart(false);
-    }, 500);
+    setCart({});
+    setShowCart(false);
   };
 
   const cartItems = Object.entries(cart).filter(([_, count]) => count > 0).map(([productId, count]) => {
@@ -387,67 +201,91 @@ const Store = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className={product.featured ? "ring-2 ring-primary/20" : ""}>
-              <CardContent className="p-4">
-                <div className="flex gap-4">
-                  <div className="text-4xl">{product.image}</div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-bold text-sm">{product.name}</h3>
-                      {product.featured && (
-                        <Badge variant="default" className="text-xs">Featured</Badge>
-                      )}
-                    </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">No products found. Check back later!</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProducts.map((product) => (
+              <Card key={product.id} className="overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Product Image */}
+                  <div 
+                    className="relative h-48 bg-muted cursor-pointer"
+                    onClick={() => setSelectedProduct(product)}
+                  >
+                    {product.image_urls && product.image_urls.length > 0 ? (
+                      <img 
+                        src={product.image_urls[0]} 
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-6xl">
+                        📦
+                      </div>
+                    )}
+                    {product.video_url && (
+                      <div className="absolute top-2 right-2 bg-black/50 rounded-full p-2">
+                        <Play className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                    {!product.in_stock && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <Badge variant="secondary">Out of Stock</Badge>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-4 space-y-3">
+                    <h3 className="font-bold text-sm line-clamp-2">{product.name}</h3>
                     
-                    <p className="text-xs text-muted-foreground">{product.description}</p>
-                    
-                    <div className="flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs font-medium">{product.rating}</span>
-                      <span className="text-xs text-muted-foreground">({product.reviews})</span>
-                    </div>
+                    {product.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+                    )}
                     
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-lg">₹{product.price.toLocaleString()}</span>
-                      {product.originalPrice > product.price && (
+                      <span className="font-bold text-lg">
+                        ₹{(product.discount_price || product.price).toLocaleString()}
+                      </span>
+                      {product.discount_price && product.discount_price < product.price && (
                         <span className="text-sm text-muted-foreground line-through">
-                          ₹{product.originalPrice.toLocaleString()}
+                          ₹{product.price.toLocaleString()}
                         </span>
                       )}
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      {product.inStock ? (
-                        <>
-                          {cart[product.id] > 0 ? (
-                            <div className="flex items-center gap-2">
-                              <Button size="sm" variant="outline" onClick={() => removeFromCart(product.id)}>
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="font-medium">{cart[product.id]}</span>
-                              <Button size="sm" variant="outline" onClick={() => addToCart(product.id)}>
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button size="sm" onClick={() => addToCart(product.id)}>
-                              <ShoppingCart className="h-3 w-3 mr-1" />
-                              Add to Cart
-                            </Button>
-                          )}
-                        </>
+                    {product.in_stock ? (
+                      cart[product.id] > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" onClick={() => removeFromCart(product.id)}>
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="font-medium">{cart[product.id]}</span>
+                          <Button size="sm" variant="outline" onClick={() => addToCart(product.id)}>
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                       ) : (
-                        <Badge variant="secondary">Out of Stock</Badge>
-                      )}
-                    </div>
+                        <Button size="sm" className="w-full" onClick={() => addToCart(product.id)}>
+                          <ShoppingCart className="h-3 w-3 mr-1" />
+                          Add to Cart
+                        </Button>
+                      )
+                    ) : null}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Cart Summary */}
         {getTotalItems() > 0 && (
@@ -498,55 +336,130 @@ const Store = () => {
 
       {/* Cart Dialog */}
       <Dialog open={showCart} onOpenChange={setShowCart}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Shopping Cart ({getTotalItems()} items)</DialogTitle>
+            <DialogTitle>Your Cart</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {cartItems.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Your cart is empty</p>
+              <p className="text-center text-muted-foreground">Your cart is empty</p>
             ) : (
               <>
                 {cartItems.map(({ product, count }) => product && (
-                  <div key={product.id} className="flex gap-3 p-3 bg-muted rounded-lg">
-                    <div className="text-3xl">{product.image}</div>
+                  <div key={product.id} className="flex gap-4 items-center border-b pb-4">
+                    <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden">
+                      {product.image_urls && product.image_urls.length > 0 ? (
+                        <img src={product.image_urls[0]} alt={product.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                      )}
+                    </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm">{product.name}</h4>
-                      <p className="text-xs text-muted-foreground">{product.description}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="font-bold">₹{(product.price * count).toLocaleString()}</span>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline" onClick={() => removeFromCart(product.id)}>
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="font-medium">{count}</span>
-                          <Button size="sm" variant="outline" onClick={() => addToCart(product.id)}>
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setCart(prev => ({ ...prev, [product.id]: 0 }))}>
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
+                      <p className="font-medium text-sm">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        ₹{(product.discount_price || product.price).toLocaleString()} × {count}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => removeFromCart(product.id)}>
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span>{count}</span>
+                      <Button size="sm" variant="outline" onClick={() => addToCart(product.id)}>
+                        <Plus className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                 ))}
-                <div className="border-t pt-4 space-y-2">
+                <div className="pt-4 border-t">
                   <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
+                    <span>Total</span>
                     <span>₹{getTotalAmount().toLocaleString()}</span>
                   </div>
-                  <Button className="w-full" size="lg" onClick={handleCheckout}>
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Proceed to Checkout
+                  <Button className="w-full mt-4" onClick={handleCheckout}>
+                    Place Order
                   </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    You'll be redirected to IndiaMART to complete your purchase
-                  </p>
                 </div>
               </>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Detail Dialog */}
+      <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl">
+          {selectedProduct && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedProduct.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Images Gallery */}
+                {selectedProduct.image_urls && selectedProduct.image_urls.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedProduct.image_urls.map((url, idx) => (
+                      <img 
+                        key={idx}
+                        src={url} 
+                        alt={`${selectedProduct.name} ${idx + 1}`}
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Video */}
+                {selectedProduct.video_url && (
+                  <video 
+                    src={selectedProduct.video_url} 
+                    controls 
+                    className="w-full rounded-lg"
+                  />
+                )}
+
+                <p className="text-muted-foreground">{selectedProduct.description}</p>
+
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-2xl">
+                    ₹{(selectedProduct.discount_price || selectedProduct.price).toLocaleString()}
+                  </span>
+                  {selectedProduct.discount_price && selectedProduct.discount_price < selectedProduct.price && (
+                    <span className="text-lg text-muted-foreground line-through">
+                      ₹{selectedProduct.price.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+
+                {/* Specifications */}
+                {selectedProduct.specifications && Object.keys(selectedProduct.specifications).length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-bold">Specifications</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(selectedProduct.specifications).map(([key, value]) => (
+                        <div key={key} className="bg-muted p-2 rounded">
+                          <p className="text-xs text-muted-foreground">{key}</p>
+                          <p className="font-medium">{String(value)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedProduct.in_stock ? (
+                  <Button className="w-full" onClick={() => {
+                    addToCart(selectedProduct.id);
+                    setSelectedProduct(null);
+                  }}>
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Add to Cart
+                  </Button>
+                ) : (
+                  <Badge variant="secondary" className="w-full justify-center py-2">Out of Stock</Badge>
+                )}
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
