@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Volume2, VolumeX, Loader2, ChevronRight } from "lucide-react";
+import { useBookmarks } from "@/hooks/useBookmarks";
+import { Volume2, VolumeX, Loader2, ChevronRight, Bookmark, BookmarkCheck } from "lucide-react";
 
 interface ContentCardProps {
   id: string;
@@ -16,6 +17,7 @@ interface ContentCardProps {
   imageUrls?: string[];
   videoUrl?: string | null;
   category?: string;
+  contentType?: 'disease' | 'magazine' | 'manual';
   onClick?: () => void;
 }
 
@@ -27,6 +29,7 @@ const ContentCard = ({
   imageUrls = [], 
   videoUrl,
   category,
+  contentType,
   onClick 
 }: ContentCardProps) => {
   const [showDetail, setShowDetail] = useState(false);
@@ -34,6 +37,9 @@ const ContentCard = ({
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+
+  const bookmarked = contentType ? isBookmarked(contentType, id) : false;
 
   const languages = [
     { code: "en", name: "English" },
@@ -115,6 +121,23 @@ const ContentCard = ({
             <Badge className="absolute top-2 left-2" variant="secondary">
               {category}
             </Badge>
+          )}
+          {contentType && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 bg-background/80 hover:bg-background p-1 h-auto"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleBookmark(contentType, id);
+              }}
+            >
+              {bookmarked ? (
+                <BookmarkCheck className="h-4 w-4 text-primary" />
+              ) : (
+                <Bookmark className="h-4 w-4" />
+              )}
+            </Button>
           )}
         </div>
         <CardContent className="p-3">

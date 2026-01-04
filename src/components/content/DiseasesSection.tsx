@@ -80,6 +80,7 @@ const DiseasesSection = () => {
                     content={`Symptoms:\n${disease.symptoms || 'N/A'}\n\nTreatment:\n${disease.treatment || 'N/A'}\n\nPrevention:\n${disease.prevention || 'N/A'}`}
                     imageUrls={disease.image_urls || []}
                     category={disease.category}
+                    contentType="disease"
                   />
                 ))}
               </div>

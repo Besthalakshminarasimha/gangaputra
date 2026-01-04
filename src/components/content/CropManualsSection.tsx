@@ -89,6 +89,7 @@ const CropManualsSection = () => {
                 content={manual.content}
                 imageUrls={manual.image_urls || []}
                 videoUrl={manual.video_url}
+                contentType="manual"
               />
             ))}
           </div>
