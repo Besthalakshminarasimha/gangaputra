@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, BookOpen, Download, Volume2, VolumeX, ExternalLink } from "lucide-react";
+import { useBookmarks } from "@/hooks/useBookmarks";
+import { Loader2, BookOpen, Download, Volume2, VolumeX, Bookmark, BookmarkCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -26,6 +27,7 @@ const MagazinesSection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
 
   const languages = [
     { code: "en", name: "English" },
@@ -144,6 +146,21 @@ const MagazinesSection = () => {
                       📰
                     </div>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2 right-2 bg-background/80 hover:bg-background p-1 h-auto"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleBookmark('magazine', magazine.id);
+                    }}
+                  >
+                    {isBookmarked('magazine', magazine.id) ? (
+                      <BookmarkCheck className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Bookmark className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
                 <CardContent className="p-3">
                   <h3 className="font-bold text-sm line-clamp-2">{magazine.title}</h3>

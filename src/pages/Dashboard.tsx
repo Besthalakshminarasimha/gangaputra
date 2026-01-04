@@ -17,8 +17,9 @@ import MyTradeRequests from "@/components/MyTradeRequests";
 import DiseasesSection from "@/components/content/DiseasesSection";
 import MagazinesSection from "@/components/content/MagazinesSection";
 import CropManualsSection from "@/components/content/CropManualsSection";
+import BookmarksSection from "@/components/content/BookmarksSection";
 import { 
-  Fish, 
+  Fish,
   Zap, 
   AlertTriangle, 
   Plus, 
@@ -36,7 +37,8 @@ import {
   BookOpen,
   Newspaper,
   Bug,
-  X
+  X,
+  Bookmark
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -62,6 +64,26 @@ const Dashboard = () => {
   const [deviceCapacity, setDeviceCapacity] = useState("");
   const { toast } = useToast();
 
+  // Play notification sound
+  const playNotificationSound = () => {
+    const audio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU');
+    // Use a simple beep with Web Audio API
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  };
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -74,6 +96,36 @@ const Dashboard = () => {
       fetchDailyUpdates();
     }
   }, [user, loading, navigate]);
+
+  // Real-time subscription for daily updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('daily-updates-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'daily_updates'
+        },
+        (payload) => {
+          const newUpdate = payload.new as any;
+          if (newUpdate.is_active) {
+            setDailyUpdates(prev => [newUpdate, ...prev]);
+            playNotificationSound();
+            toast({
+              title: "New Update!",
+              description: newUpdate.title,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
 
   const fetchDailyUpdates = async () => {
     const { data, error } = await supabase
@@ -499,8 +551,12 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="diseases" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+            <Tabs defaultValue="bookmarks" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="bookmarks" className="flex items-center gap-1">
+                  <Bookmark className="h-4 w-4" />
+                  Saved
+                </TabsTrigger>
                 <TabsTrigger value="diseases" className="flex items-center gap-1">
                   <Bug className="h-4 w-4" />
                   Diseases
@@ -514,6 +570,9 @@ const Dashboard = () => {
                   Manuals
                 </TabsTrigger>
               </TabsList>
+              <TabsContent value="bookmarks" className="mt-4">
+                <BookmarksSection />
+              </TabsContent>
               <TabsContent value="diseases" className="mt-4">
                 <DiseasesSection />
               </TabsContent>
