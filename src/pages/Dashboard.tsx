@@ -7,12 +7,16 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import ShrimpRatesCard from "@/components/ShrimpRatesCard";
 import TradeSection from "@/components/TradeSection";
 import MyTradeRequests from "@/components/MyTradeRequests";
+import DiseasesSection from "@/components/content/DiseasesSection";
+import MagazinesSection from "@/components/content/MagazinesSection";
+import CropManualsSection from "@/components/content/CropManualsSection";
 import { 
   Fish, 
   Zap, 
@@ -27,7 +31,12 @@ import {
   MapPin,
   Cloud,
   LogOut,
-  User
+  User,
+  Bell,
+  BookOpen,
+  Newspaper,
+  Bug,
+  X
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -43,6 +52,8 @@ const Dashboard = () => {
   const [farms, setFarms] = useState<any[]>([]);
   const [powerMonDevices, setPowerMonDevices] = useState<any[]>([]);
   const [shrimpRates, setShrimpRates] = useState<any[]>([]); // Kept for backward compatibility
+  const [dailyUpdates, setDailyUpdates] = useState<any[]>([]);
+  const [dismissedUpdates, setDismissedUpdates] = useState<string[]>([]);
   const [farmName, setFarmName] = useState("");
   const [farmLocation, setFarmLocation] = useState("");
   const [farmPonds, setFarmPonds] = useState("");
@@ -60,9 +71,29 @@ const Dashboard = () => {
       fetchProfile();
       fetchFarms();
       fetchPowerMonDevices();
-      // Removed fetchShrimpRates() - now handled by ShrimpRatesCard component
+      fetchDailyUpdates();
     }
   }, [user, loading, navigate]);
+
+  const fetchDailyUpdates = async () => {
+    const { data, error } = await supabase
+      .from('daily_updates')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching daily updates:', error);
+    } else {
+      setDailyUpdates(data || []);
+    }
+  };
+
+  const dismissUpdate = (id: string) => {
+    setDismissedUpdates(prev => [...prev, id]);
+  };
+
+  const visibleUpdates = dailyUpdates.filter(u => !dismissedUpdates.includes(u.id));
   
   const fetchProfile = async () => {
     if (!user) return;
@@ -338,6 +369,36 @@ const Dashboard = () => {
       </div>
 
       <div className="p-4 space-y-6">
+        {/* Daily Updates Banner */}
+        {visibleUpdates.length > 0 && (
+          <div className="space-y-2">
+            {visibleUpdates.map((update) => (
+              <div
+                key={update.id}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-lg shadow-lg animate-fade-in"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <Bell className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-bold">{update.title}</h3>
+                      <p className="text-sm text-white/90">{update.message}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => dismissUpdate(update.id)}
+                    className="text-white hover:bg-white/20 p-1 h-auto"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Farm Stats */}
         <div className="grid grid-cols-2 gap-4">
           {farmStats.map((stat, index) => {
@@ -428,6 +489,43 @@ const Dashboard = () => {
 
         {/* My Trade Requests */}
         <MyTradeRequests />
+
+        {/* Resources Section - Diseases, Magazines, Manuals */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Resources & Knowledge Base
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="diseases" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="diseases" className="flex items-center gap-1">
+                  <Bug className="h-4 w-4" />
+                  Diseases
+                </TabsTrigger>
+                <TabsTrigger value="magazines" className="flex items-center gap-1">
+                  <Newspaper className="h-4 w-4" />
+                  Magazines
+                </TabsTrigger>
+                <TabsTrigger value="manuals" className="flex items-center gap-1">
+                  <BookOpen className="h-4 w-4" />
+                  Manuals
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="diseases" className="mt-4">
+                <DiseasesSection />
+              </TabsContent>
+              <TabsContent value="magazines" className="mt-4">
+                <MagazinesSection />
+              </TabsContent>
+              <TabsContent value="manuals" className="mt-4">
+                <CropManualsSection />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
 
         {/* Alarms */}
         <Card>
