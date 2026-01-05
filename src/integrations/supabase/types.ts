@@ -220,6 +220,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_daily_updates: boolean | null
+          email_price_alerts: boolean | null
+          email_trade_alerts: boolean | null
+          id: string
+          push_daily_updates: boolean | null
+          push_price_alerts: boolean | null
+          push_trade_alerts: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_daily_updates?: boolean | null
+          email_price_alerts?: boolean | null
+          email_trade_alerts?: boolean | null
+          id?: string
+          push_daily_updates?: boolean | null
+          push_price_alerts?: boolean | null
+          push_trade_alerts?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_daily_updates?: boolean | null
+          email_price_alerts?: boolean | null
+          email_trade_alerts?: boolean | null
+          id?: string
+          push_daily_updates?: boolean | null
+          push_price_alerts?: boolean | null
+          push_trade_alerts?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       powermon_devices: {
         Row: {
           capacity: number

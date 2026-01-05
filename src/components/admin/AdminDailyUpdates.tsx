@@ -66,16 +66,43 @@ const AdminDailyUpdates = () => {
     };
 
     let error;
+    let insertedData;
     if (editingUpdate) {
       ({ error } = await supabase.from("daily_updates").update(updateData).eq("id", editingUpdate.id));
     } else {
-      ({ error } = await supabase.from("daily_updates").insert(updateData));
+      const result = await supabase.from("daily_updates").insert(updateData).select().single();
+      error = result.error;
+      insertedData = result.data;
     }
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Success", description: `Update ${editingUpdate ? "modified" : "created"} successfully` });
+      
+      // Send email notifications for new active updates
+      if (!editingUpdate && formData.is_active && insertedData) {
+        try {
+          const { error: emailError } = await supabase.functions.invoke('send-daily-update-email', {
+            body: {
+              updateId: insertedData.id,
+              title: formData.title,
+              message: formData.message,
+              targetAudience: formData.target_audience,
+            }
+          });
+          
+          if (emailError) {
+            console.error('Email notification error:', emailError);
+            toast({ title: "Note", description: "Update created, but email notifications may not have been sent" });
+          } else {
+            toast({ title: "Emails Sent", description: "Email notifications sent to subscribed users" });
+          }
+        } catch (err) {
+          console.error('Error sending email notifications:', err);
+        }
+      }
+      
       setDialogOpen(false);
       resetForm();
       fetchUpdates();
