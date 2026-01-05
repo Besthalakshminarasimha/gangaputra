@@ -129,7 +129,17 @@ const ContentCard = ({
               className="absolute top-2 right-2 bg-background/80 hover:bg-background p-1 h-auto"
               onClick={(e) => {
                 e.stopPropagation();
-                toggleBookmark(contentType, id);
+                // Pass content data for offline caching
+                const contentData = {
+                  id,
+                  title,
+                  description,
+                  content,
+                  imageUrls,
+                  videoUrl,
+                  category,
+                };
+                toggleBookmark(contentType, id, contentData);
               }}
             >
               {bookmarked ? (

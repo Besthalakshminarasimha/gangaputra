@@ -5,6 +5,28 @@ import { useToast } from "@/hooks/use-toast";
 
 type ContentType = 'disease' | 'magazine' | 'manual';
 
+// Helper to communicate with service worker for offline caching
+const cacheBookmarkContent = async (contentType: ContentType, contentId: string, data: any) => {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'CACHE_BOOKMARK',
+      contentType,
+      contentId,
+      data,
+    });
+  }
+};
+
+const removeBookmarkCache = async (contentType: ContentType, contentId: string) => {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'REMOVE_BOOKMARK_CACHE',
+      contentType,
+      contentId,
+    });
+  }
+};
+
 export const useBookmarks = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -37,7 +59,7 @@ export const useBookmarks = () => {
     return !!bookmarkedIds[`${contentType}-${contentId}`];
   }, [bookmarkedIds]);
 
-  const toggleBookmark = async (contentType: ContentType, contentId: string) => {
+  const toggleBookmark = async (contentType: ContentType, contentId: string, contentData?: any) => {
     if (!user) {
       toast({
         title: "Login Required",
@@ -71,6 +93,8 @@ export const useBookmarks = () => {
           delete next[key];
           return next;
         });
+        // Remove from offline cache
+        removeBookmarkCache(contentType, contentId);
         toast({
           title: "Removed",
           description: "Bookmark removed",
@@ -94,9 +118,13 @@ export const useBookmarks = () => {
         });
       } else {
         setBookmarkedIds(prev => ({ ...prev, [key]: true }));
+        // Cache content for offline access if data provided
+        if (contentData) {
+          cacheBookmarkContent(contentType, contentId, contentData);
+        }
         toast({
           title: "Bookmarked",
-          description: "Added to your bookmarks",
+          description: "Saved for offline access",
         });
       }
     }

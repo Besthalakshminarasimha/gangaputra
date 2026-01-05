@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Lock, Info, ArrowLeft } from "lucide-react";
+import NotificationPreferences from "@/components/NotificationPreferences";
+import { User, Lock, Info, ArrowLeft, Bell } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -162,10 +163,14 @@ const Profile = () => {
 
       <div className="p-4">
         <Tabs defaultValue="profile" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
               Profile
+            </TabsTrigger>
+            <TabsTrigger value="notifications">
+              <Bell className="h-4 w-4 mr-2" />
+              Alerts
             </TabsTrigger>
             <TabsTrigger value="password">
               <Lock className="h-4 w-4 mr-2" />
@@ -173,7 +178,7 @@ const Profile = () => {
             </TabsTrigger>
             <TabsTrigger value="about">
               <Info className="h-4 w-4 mr-2" />
-              About Us
+              About
             </TabsTrigger>
           </TabsList>
 
@@ -228,6 +233,10 @@ const Profile = () => {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationPreferences />
           </TabsContent>
 
           <TabsContent value="password">
