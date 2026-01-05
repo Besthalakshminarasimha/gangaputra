@@ -8,8 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import ShrimpRatesCard from "@/components/ShrimpRatesCard";
 import TradeSection from "@/components/TradeSection";
@@ -38,12 +40,21 @@ import {
   Newspaper,
   Bug,
   X,
-  Bookmark
+  Bookmark,
+  BellRing
 } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  const { 
+    isSupported: pushSupported, 
+    isSubscribed: pushSubscribed, 
+    permission: pushPermission,
+    requestPermission,
+    subscribe: subscribePush,
+    showLocalNotification 
+  } = usePushNotifications();
   const [showAddFarm, setShowAddFarm] = useState(false);
   const [showAddPowerMon, setShowAddPowerMon] = useState(false);
   const [showWeatherMap, setShowWeatherMap] = useState(false);
@@ -117,6 +128,14 @@ const Dashboard = () => {
               title: "New Update!",
               description: newUpdate.title,
             });
+            // Send push notification if enabled
+            if (pushPermission === 'granted') {
+              showLocalNotification(newUpdate.title, {
+                body: newUpdate.message,
+                tag: `daily-update-${newUpdate.id}`,
+                data: { url: '/dashboard' },
+              });
+            }
           }
         }
       )
@@ -125,7 +144,14 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [toast]);
+  }, [toast, pushPermission, showLocalNotification]);
+
+  const handleEnablePushNotifications = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      await subscribePush();
+    }
+  };
 
   const fetchDailyUpdates = async () => {
     const { data, error } = await supabase
@@ -448,6 +474,33 @@ const Dashboard = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Push Notification Toggle */}
+        {pushSupported && pushPermission !== 'granted' && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <BellRing className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Enable Push Notifications</p>
+                    <p className="text-sm text-muted-foreground">Get notified even when the app is closed</p>
+                  </div>
+                </div>
+                <Button size="sm" onClick={handleEnablePushNotifications}>
+                  Enable
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {pushSupported && pushPermission === 'granted' && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <BellRing className="h-4 w-4 text-green-500" />
+            <span>Push notifications enabled</span>
           </div>
         )}
 
