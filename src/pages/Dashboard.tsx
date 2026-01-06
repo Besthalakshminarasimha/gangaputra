@@ -22,6 +22,8 @@ import CropManualsSection from "@/components/content/CropManualsSection";
 import BookmarksSection from "@/components/content/BookmarksSection";
 import PriceAlertsBanner from "@/components/PriceAlertsBanner";
 import OfflineIndicator from "@/components/OfflineIndicator";
+import ConnectionQualityWidget from "@/components/ConnectionQualityWidget";
+import PriceHistoryChart from "@/components/PriceHistoryChart";
 import { 
   Fish,
   Zap, 
@@ -509,6 +511,9 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* Connection Quality Widget */}
+        <ConnectionQualityWidget />
+
         {/* Farm Stats */}
         <div className="grid grid-cols-2 gap-4">
           {farmStats.map((stat, index) => {
@@ -593,6 +598,9 @@ const Dashboard = () => {
 
         {/* Shrimp Rates - New Pan-India Component */}
         <ShrimpRatesCard />
+
+        {/* Price History Chart */}
+        <PriceHistoryChart />
 
         {/* Trade Section */}
         <TradeSection />

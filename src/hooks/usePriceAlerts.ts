@@ -102,27 +102,48 @@ export const usePriceAlerts = () => {
       });
 
       // Trigger notifications for significant changes
-      if (newAlerts.length > 0 && preferences.push_price_alerts) {
+      if (newAlerts.length > 0) {
         setAlerts(newAlerts);
 
         const significantAlert = newAlerts.reduce((max, alert) => 
           Math.abs(alert.changePercent) > Math.abs(max.changePercent) ? alert : max
         );
 
-        toast({
-          title: `Price ${significantAlert.direction === 'up' ? '📈 Increased' : '📉 Decreased'}`,
-          description: `${significantAlert.location} Count ${significantAlert.count}: ₹${significantAlert.previousRate} → ₹${significantAlert.currentRate} (${significantAlert.changePercent > 0 ? '+' : ''}${significantAlert.changePercent}%)`,
-        });
+        // Show toast notification
+        if (preferences.push_price_alerts) {
+          toast({
+            title: `Price ${significantAlert.direction === 'up' ? '📈 Increased' : '📉 Decreased'}`,
+            description: `${significantAlert.location} Count ${significantAlert.count}: ₹${significantAlert.previousRate} → ₹${significantAlert.currentRate} (${significantAlert.changePercent > 0 ? '+' : ''}${significantAlert.changePercent}%)`,
+          });
 
-        if (pushPermission === 'granted') {
-          showLocalNotification(
-            `Shrimp Price ${significantAlert.direction === 'up' ? 'Increase' : 'Drop'} Alert!`,
-            {
-              body: `${significantAlert.location}: Count ${significantAlert.count} is now ₹${significantAlert.currentRate}/kg (${significantAlert.changePercent > 0 ? '+' : ''}${significantAlert.changePercent}%)`,
-              tag: 'price-alert',
-              data: { url: '/dashboard' },
+          // Send push notification
+          if (pushPermission === 'granted') {
+            showLocalNotification(
+              `Shrimp Price ${significantAlert.direction === 'up' ? 'Increase' : 'Drop'} Alert!`,
+              {
+                body: `${significantAlert.location}: Count ${significantAlert.count} is now ₹${significantAlert.currentRate}/kg (${significantAlert.changePercent > 0 ? '+' : ''}${significantAlert.changePercent}%)`,
+                tag: 'price-alert',
+                data: { url: '/dashboard' },
+              }
+            );
+          }
+        }
+
+        // Send email notification for price alerts
+        if (preferences.email_price_alerts) {
+          try {
+            const { error: emailError } = await supabase.functions.invoke('send-price-alert-email', {
+              body: { alerts: newAlerts }
+            });
+
+            if (emailError) {
+              console.error('Error sending price alert email:', emailError);
+            } else {
+              console.log('Price alert email sent successfully');
             }
-          );
+          } catch (emailErr) {
+            console.error('Failed to send price alert email:', emailErr);
+          }
         }
       }
 
