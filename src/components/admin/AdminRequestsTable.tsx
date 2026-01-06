@@ -126,6 +126,7 @@ const AdminRequestsTable = ({ onUpdate }: AdminRequestsTableProps) => {
       // Send email notification if status changed
       if (oldStatus !== newStatus) {
         try {
+          // Send email notification
           const { error: emailError } = await supabase.functions.invoke('send-status-notification', {
             body: {
               requestId: selectedRequest.id,
@@ -140,14 +141,30 @@ const AdminRequestsTable = ({ onUpdate }: AdminRequestsTableProps) => {
 
           if (emailError) {
             console.error("Failed to send notification email:", emailError);
-          } else {
-            toast({
-              title: "Notification Sent",
-              description: "User has been notified of the status change.",
-            });
           }
+
+          // Send push notification
+          const { error: pushError } = await supabase.functions.invoke('send-trade-push-notification', {
+            body: {
+              userId: selectedRequest.user_id,
+              requestId: selectedRequest.id,
+              cropType: selectedRequest.crop_type,
+              oldStatus,
+              newStatus,
+              adminNotes: editData.admin_notes || undefined,
+            },
+          });
+
+          if (pushError) {
+            console.error("Failed to send push notification:", pushError);
+          }
+
+          toast({
+            title: "Notifications Sent",
+            description: "User has been notified of the status change.",
+          });
         } catch (emailErr) {
-          console.error("Error invoking notification function:", emailErr);
+          console.error("Error invoking notification functions:", emailErr);
         }
       }
     }

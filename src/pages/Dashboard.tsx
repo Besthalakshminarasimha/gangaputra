@@ -20,6 +20,8 @@ import DiseasesSection from "@/components/content/DiseasesSection";
 import MagazinesSection from "@/components/content/MagazinesSection";
 import CropManualsSection from "@/components/content/CropManualsSection";
 import BookmarksSection from "@/components/content/BookmarksSection";
+import PriceAlertsBanner from "@/components/PriceAlertsBanner";
+import OfflineIndicator from "@/components/OfflineIndicator";
 import { 
   Fish,
   Zap, 
@@ -477,6 +479,9 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* Price Alerts Banner */}
+        <PriceAlertsBanner />
+
         {/* Push Notification Toggle */}
         {pushSupported && pushPermission !== 'granted' && (
           <Card className="border-primary/20 bg-primary/5">
@@ -896,6 +901,9 @@ const Dashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Offline Indicator */}
+      <OfflineIndicator />
     </div>
   );
 };

@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.send-daily-update-email]
 verify_jwt = false
+
+[functions.send-trade-push-notification]
+verify_jwt = false
