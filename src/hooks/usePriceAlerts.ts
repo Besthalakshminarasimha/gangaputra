@@ -132,17 +132,23 @@ export const usePriceAlerts = () => {
         // Send email notification for price alerts
         if (preferences.email_price_alerts) {
           try {
-            const { error: emailError } = await supabase.functions.invoke('send-price-alert-email', {
+            await supabase.functions.invoke('send-price-alert-email', {
               body: { alerts: newAlerts }
             });
-
-            if (emailError) {
-              console.error('Error sending price alert email:', emailError);
-            } else {
-              console.log('Price alert email sent successfully');
-            }
           } catch (emailErr) {
             console.error('Failed to send price alert email:', emailErr);
+          }
+        }
+
+        // Send SMS notification for critical price alerts (>10% change)
+        const criticalAlerts = newAlerts.filter(a => Math.abs(a.changePercent) >= 10);
+        if (criticalAlerts.length > 0) {
+          try {
+            await supabase.functions.invoke('send-sms-notification', {
+              body: { type: 'price_alert', alerts: criticalAlerts }
+            });
+          } catch (smsErr) {
+            console.error('Failed to send SMS alert:', smsErr);
           }
         }
       }

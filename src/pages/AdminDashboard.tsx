@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell } from "lucide-react";
+import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart } from "lucide-react";
 import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
@@ -15,6 +15,7 @@ import AdminMagazines from "@/components/admin/AdminMagazines";
 import AdminCropManuals from "@/components/admin/AdminCropManuals";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminDailyUpdates from "@/components/admin/AdminDailyUpdates";
+import AdminOrders from "@/components/admin/AdminOrders";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -149,6 +150,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="requests" className="space-y-4">
           <TabsList className="flex flex-wrap gap-1">
             <TabsTrigger value="requests"><Package className="h-4 w-4 mr-1" />Requests</TabsTrigger>
+            <TabsTrigger value="orders"><ShoppingCart className="h-4 w-4 mr-1" />Orders</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Users</TabsTrigger>
             <TabsTrigger value="diseases"><Bug className="h-4 w-4 mr-1" />Diseases</TabsTrigger>
             <TabsTrigger value="magazines"><BookOpen className="h-4 w-4 mr-1" />Magazines</TabsTrigger>
@@ -160,6 +162,7 @@ const AdminDashboard = () => {
           </TabsList>
           
           <TabsContent value="requests"><AdminRequestsTable onUpdate={fetchStats} /></TabsContent>
+          <TabsContent value="orders"><AdminOrders /></TabsContent>
           <TabsContent value="users"><AdminUsersTable /></TabsContent>
           <TabsContent value="diseases"><AdminDiseases /></TabsContent>
           <TabsContent value="magazines"><AdminMagazines /></TabsContent>

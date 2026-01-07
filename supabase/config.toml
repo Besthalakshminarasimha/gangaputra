@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.send-price-alert-email]
 verify_jwt = false
+
+[functions.ai-price-prediction]
+verify_jwt = false
