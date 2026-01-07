@@ -24,6 +24,8 @@ import PriceAlertsBanner from "@/components/PriceAlertsBanner";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import ConnectionQualityWidget from "@/components/ConnectionQualityWidget";
 import PriceHistoryChart from "@/components/PriceHistoryChart";
+import PricePrediction from "@/components/PricePrediction";
+import PriceExport from "@/components/PriceExport";
 import { 
   Fish,
   Zap, 
@@ -601,6 +603,12 @@ const Dashboard = () => {
 
         {/* Price History Chart */}
         <PriceHistoryChart />
+
+        {/* AI Price Prediction */}
+        <PricePrediction />
+
+        {/* Price Export */}
+        <PriceExport />
 
         {/* Trade Section */}
         <TradeSection />

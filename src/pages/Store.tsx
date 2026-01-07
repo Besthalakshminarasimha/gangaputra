@@ -133,7 +133,7 @@ const Store = () => {
     }, 0);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (getTotalItems() === 0) {
       toast({
         title: "Cart is empty",
@@ -142,13 +142,46 @@ const Store = () => {
       });
       return;
     }
-    
-    toast({
-      title: "Order Placed",
-      description: "Your order has been placed successfully! We will contact you soon.",
-    });
-    setCart({});
-    setShowCart(false);
+
+    // Build order items
+    const orderItems = Object.entries(cart)
+      .filter(([_, count]) => count > 0)
+      .map(([productId, count]) => {
+        const product = products.find(p => p.id === productId);
+        return {
+          productId,
+          name: product?.name || 'Unknown',
+          price: product?.discount_price || product?.price || 0,
+          quantity: count,
+        };
+      });
+
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user!.id,
+          items: orderItems,
+          total_amount: getTotalAmount(),
+          status: 'pending',
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Order Placed",
+        description: "Your order has been placed successfully! We will contact you soon.",
+      });
+      setCart({});
+      setShowCart(false);
+    } catch (err) {
+      console.error('Error placing order:', err);
+      toast({
+        title: "Error",
+        description: "Failed to place order. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const cartItems = Object.entries(cart).filter(([_, count]) => count > 0).map(([productId, count]) => {
