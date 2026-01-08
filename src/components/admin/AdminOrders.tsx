@@ -83,12 +83,33 @@ const AdminOrders = () => {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
+      // Find the order to get user details
+      const order = orders.find(o => o.id === orderId);
+      if (!order) throw new Error("Order not found");
+
       const { error } = await supabase
         .from('orders')
         .update({ status: newStatus })
         .eq('id', orderId);
 
       if (error) throw error;
+
+      // Send status notification to user
+      try {
+        await supabase.functions.invoke('send-order-status-notification', {
+          body: {
+            orderId,
+            newStatus,
+            userEmail: order.user_email,
+            userName: order.user_name,
+            orderTotal: order.total_amount,
+            itemCount: order.items.length,
+          },
+        });
+      } catch (notifError) {
+        console.error('Error sending notification:', notifError);
+        // Don't fail the whole operation if notification fails
+      }
 
       toast({
         title: "Status Updated",

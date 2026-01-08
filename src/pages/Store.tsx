@@ -18,7 +18,8 @@ import {
   Smartphone,
   X,
   Loader2,
-  Play
+  Play,
+  Package
 } from "lucide-react";
 
 interface Product {
@@ -193,8 +194,21 @@ const Store = () => {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-teal-600 p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">Ganga Store</h1>
-        <p className="text-white/80">Everything you need for successful aqua farming</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Ganga Store</h1>
+            <p className="text-white/80">Everything you need for successful aqua farming</p>
+          </div>
+          <Button 
+            variant="secondary" 
+            size="sm"
+            onClick={() => navigate('/orders')}
+            className="bg-white/20 hover:bg-white/30 text-white border-none"
+          >
+            <Package className="h-4 w-4 mr-2" />
+            My Orders
+          </Button>
+        </div>
       </div>
 
       <div className="p-4 space-y-6">
