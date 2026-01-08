@@ -5,9 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Package, ArrowLeft, Loader2, Clock, CheckCircle, Truck, PackageCheck, XCircle } from "lucide-react";
+import { Package, ArrowLeft, Loader2, Clock, CheckCircle, Truck, PackageCheck, XCircle, AlertTriangle } from "lucide-react";
 
 interface OrderItem {
   productId: string;
@@ -34,6 +34,9 @@ const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [cancellingOrder, setCancellingOrder] = useState<string | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,6 +104,64 @@ const Orders = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!orderToCancel) return;
+    
+    setCancellingOrder(orderToCancel.id);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'cancelled' })
+        .eq('id', orderToCancel.id)
+        .eq('user_id', user!.id)
+        .eq('status', 'pending');
+
+      if (error) throw error;
+
+      // Update local state
+      setOrders(prev => prev.map(o => 
+        o.id === orderToCancel.id ? { ...o, status: 'cancelled' } : o
+      ));
+
+      toast({
+        title: "Order Cancelled",
+        description: "Your order has been cancelled successfully",
+      });
+
+      // Send notification
+      try {
+        await supabase.functions.invoke('send-order-status-notification', {
+          body: {
+            orderId: orderToCancel.id,
+            newStatus: 'cancelled',
+            userEmail: user?.email,
+            userName: user?.user_metadata?.full_name,
+            orderTotal: orderToCancel.total_amount,
+            itemCount: orderToCancel.items.length,
+          },
+        });
+      } catch (notifError) {
+        console.error('Error sending cancellation notification:', notifError);
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel order. Only pending orders can be cancelled.",
+        variant: "destructive"
+      });
+    } finally {
+      setCancellingOrder(null);
+      setShowCancelDialog(false);
+      setOrderToCancel(null);
+    }
+  };
+
+  const openCancelDialog = (order: Order) => {
+    setOrderToCancel(order);
+    setShowCancelDialog(true);
   };
 
   const getStatusIcon = (status: string) => {
@@ -251,9 +312,28 @@ const Orders = () => {
                     <span className="text-sm text-muted-foreground">Total:</span>
                     <span className="font-bold text-lg ml-2">₹{order.total_amount.toLocaleString()}</span>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => setSelectedOrder(order)}>
-                    View Details
-                  </Button>
+                  <div className="flex gap-2">
+                    {order.status === 'pending' && (
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => openCancelDialog(order)}
+                        disabled={cancellingOrder === order.id}
+                      >
+                        {cancellingOrder === order.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Cancel
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => setSelectedOrder(order)}>
+                      View Details
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -322,8 +402,61 @@ const Orders = () => {
                   <p className="text-sm">{selectedOrder.notes}</p>
                 </div>
               )}
+
+              {selectedOrder.status === 'pending' && (
+                <div className="border-t pt-4">
+                  <Button 
+                    variant="destructive" 
+                    className="w-full"
+                    onClick={() => {
+                      setSelectedOrder(null);
+                      openCancelDialog(selectedOrder);
+                    }}
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Cancel Order
+                  </Button>
+                </div>
+              )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Cancel Order
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this order? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {orderToCancel && (
+            <div className="bg-muted p-3 rounded-lg text-sm">
+              <p><strong>Order ID:</strong> #{orderToCancel.id.slice(0, 8)}</p>
+              <p><strong>Total:</strong> ₹{orderToCancel.total_amount.toLocaleString()}</p>
+              <p><strong>Items:</strong> {orderToCancel.items.length} items</p>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
+              Keep Order
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleCancelOrder}
+              disabled={cancellingOrder !== null}
+            >
+              {cancellingOrder ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Yes, Cancel Order
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
