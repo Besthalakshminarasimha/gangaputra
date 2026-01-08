@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.ai-price-prediction]
 verify_jwt = false
+
+[functions.send-order-status-notification]
+verify_jwt = false
