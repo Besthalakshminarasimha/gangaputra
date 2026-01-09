@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
-import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,13 +13,6 @@ interface OrderStatusNotificationRequest {
   userName?: string;
   orderTotal?: number;
   itemCount?: number;
-  pushSubscription?: {
-    endpoint: string;
-    keys: {
-      p256dh: string;
-      auth: string;
-    };
-  };
 }
 
 const getStatusInfo = (status: string): { subject: string; message: string; color: string; icon: string } => {
@@ -63,35 +55,6 @@ const getStatusInfo = (status: string): { subject: string; message: string; colo
   }
 };
 
-const sendPushNotification = async (
-  subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
-  payload: { title: string; body: string; icon?: string; data?: Record<string, unknown> }
-): Promise<boolean> => {
-  const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY");
-  const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
-  const VAPID_EMAIL = Deno.env.get("VAPID_EMAIL") || "mailto:admin@gangaaqua.com";
-
-  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-    console.log("VAPID keys not configured. Push notification skipped.");
-    return false;
-  }
-
-  try {
-    webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-
-    await webpush.sendNotification(
-      subscription,
-      JSON.stringify(payload)
-    );
-
-    console.log("Push notification sent successfully");
-    return true;
-  } catch (error) {
-    console.error("Error sending push notification:", error);
-    return false;
-  }
-};
-
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-order-status-notification function called");
 
@@ -100,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { orderId, newStatus, userEmail, userName, orderTotal, itemCount, pushSubscription }: OrderStatusNotificationRequest = await req.json();
+    const { orderId, newStatus, userEmail, userName, orderTotal, itemCount }: OrderStatusNotificationRequest = await req.json();
     
     if (!orderId || !newStatus || !userEmail) {
       throw new Error("Missing required fields: orderId, newStatus, userEmail");
@@ -119,26 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const results = {
-      emailSent: false,
-      pushSent: false,
-    };
-
-    // Send Push Notification if subscription provided
-    if (pushSubscription) {
-      const pushPayload = {
-        title: `${statusInfo.icon} ${statusInfo.subject}`,
-        body: statusInfo.message,
-        icon: "/favicon.ico",
-        data: {
-          orderId,
-          status: newStatus,
-          url: "/orders",
-        },
-      };
-
-      results.pushSent = await sendPushNotification(pushSubscription, pushPayload);
-    }
+    let emailSent = false;
 
     // Send Email Notification
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -206,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         console.log("Email sent successfully:", emailResponse);
-        results.emailSent = true;
+        emailSent = true;
       } catch (emailError) {
         console.error("Error sending email:", emailError);
       }
@@ -215,7 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, ...results }),
+      JSON.stringify({ success: true, emailSent }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
