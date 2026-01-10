@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 interface Notification {
   id: string;
@@ -17,6 +18,7 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { playNotificationSound, playPriceAlertSound } = useNotificationSound();
 
   useEffect(() => {
     if (!user) {
@@ -43,6 +45,13 @@ export const useNotifications = () => {
           const newNotification = payload.new as Notification;
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
+          
+          // Play appropriate sound based on notification type
+          if (newNotification.type === 'price_alert') {
+            playPriceAlertSound();
+          } else {
+            playNotificationSound();
+          }
         }
       )
       .on(
