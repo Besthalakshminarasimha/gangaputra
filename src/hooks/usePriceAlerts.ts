@@ -109,6 +109,28 @@ export const usePriceAlerts = () => {
           Math.abs(alert.changePercent) > Math.abs(max.changePercent) ? alert : max
         );
 
+        // Save to in-app notification center
+        for (const alert of newAlerts) {
+          try {
+            await supabase.from('notifications').insert({
+              user_id: user.id,
+              type: 'price_alert',
+              title: `Price ${alert.direction === 'up' ? 'Increased' : 'Decreased'}: ${alert.location}`,
+              message: `Count ${alert.count}: ₹${alert.previousRate} → ₹${alert.currentRate} (${alert.changePercent > 0 ? '+' : ''}${alert.changePercent}%)`,
+              data: {
+                location: alert.location,
+                count: alert.count,
+                previousRate: alert.previousRate,
+                currentRate: alert.currentRate,
+                changePercent: alert.changePercent,
+                direction: alert.direction,
+              },
+            });
+          } catch (dbErr) {
+            console.error('Failed to save price alert to notifications:', dbErr);
+          }
+        }
+
         // Show toast notification
         if (preferences.push_price_alerts) {
           toast({
