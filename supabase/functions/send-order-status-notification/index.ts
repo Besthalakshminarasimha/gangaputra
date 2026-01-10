@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +14,8 @@ interface OrderStatusNotificationRequest {
   userName?: string;
   orderTotal?: number;
   itemCount?: number;
+  userId?: string;
+  phoneNumber?: string;
 }
 
 const getStatusInfo = (status: string): { subject: string; message: string; color: string; icon: string } => {
@@ -63,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { orderId, newStatus, userEmail, userName, orderTotal, itemCount }: OrderStatusNotificationRequest = await req.json();
+    const { orderId, newStatus, userEmail, userName, orderTotal, itemCount, userId, phoneNumber }: OrderStatusNotificationRequest = await req.json();
     
     if (!orderId || !newStatus || !userEmail) {
       throw new Error("Missing required fields: orderId, newStatus, userEmail");
@@ -82,7 +85,79 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    let emailSent = false;
+    const results = {
+      emailSent: false,
+      smsSent: false,
+      inAppSaved: false,
+    };
+
+    // Save in-app notification
+    if (userId) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        await supabase.from('notifications').insert({
+          user_id: userId,
+          type: 'order_status',
+          title: `${statusInfo.icon} ${statusInfo.subject}`,
+          message: statusInfo.message,
+          data: {
+            orderId,
+            status: newStatus,
+            orderTotal,
+            itemCount,
+          },
+        });
+
+        console.log("In-app notification saved successfully");
+        results.inAppSaved = true;
+      } catch (inAppError) {
+        console.error("Error saving in-app notification:", inAppError);
+      }
+    }
+
+    // Send SMS Notification for important statuses
+    if (phoneNumber && ['confirmed', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
+      const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+      const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+      const fromNumber = Deno.env.get("TWILIO_PHONE_NUMBER");
+
+      if (accountSid && authToken && fromNumber) {
+        try {
+          const smsMessage = `${statusInfo.icon} Order #${orderId.slice(0, 8)} - ${statusInfo.subject}. ${statusInfo.message} - Ganga Aqua`;
+          
+          const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+          
+          const response = await fetch(twilioUrl, {
+            method: "POST",
+            headers: {
+              "Authorization": `Basic ${btoa(`${accountSid}:${authToken}`)}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              To: phoneNumber,
+              From: fromNumber,
+              Body: smsMessage,
+            }),
+          });
+
+          const result = await response.json();
+          
+          if (response.ok) {
+            console.log("SMS sent successfully:", result.sid);
+            results.smsSent = true;
+          } else {
+            console.error("Twilio error:", result);
+          }
+        } catch (smsError) {
+          console.error("Error sending SMS:", smsError);
+        }
+      } else {
+        console.log("Twilio credentials not configured. SMS notification skipped.");
+      }
+    }
 
     // Send Email Notification
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -150,7 +225,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         console.log("Email sent successfully:", emailResponse);
-        emailSent = true;
+        results.emailSent = true;
       } catch (emailError) {
         console.error("Error sending email:", emailError);
       }
@@ -159,7 +234,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, emailSent }),
+      JSON.stringify({ success: true, ...results }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {

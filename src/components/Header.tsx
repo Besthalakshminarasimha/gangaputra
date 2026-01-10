@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import NotificationCenter from "@/components/NotificationCenter";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -57,22 +58,25 @@ const Header = () => {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <User className="h-4 w-4 mr-2" />
-                    Account
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <NotificationCenter />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      Account
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
               <>
                 <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
@@ -114,10 +118,15 @@ const Header = () => {
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
                 {user ? (
-                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </Button>
+                  <>
+                    <div className="flex justify-center">
+                      <NotificationCenter />
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
