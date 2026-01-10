@@ -13,6 +13,7 @@ import Aquapedia from "./pages/Aquapedia";
 import Calculators from "./pages/Calculators";
 import Store from "./pages/Store";
 import Orders from "./pages/Orders";
+import PriceAlertsHistory from "./pages/PriceAlertsHistory";
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/calculators" element={<Calculators />} />
             <Route path="/store" element={<Store />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/price-alerts" element={<PriceAlertsHistory />} />
             <Route path="/admin" element={<AdminAuth />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
