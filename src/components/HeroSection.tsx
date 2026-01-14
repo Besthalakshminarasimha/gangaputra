@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Fish, Droplets, Zap, BarChart3, TrendingUp, Users, ShieldCheck, Award, Waves, Thermometer, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Fish, Droplets, Zap, BarChart3, TrendingUp, Users, ShieldCheck, Award, Waves, Thermometer, Play, Volume2, VolumeX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect, useRef } from "react";
-import heroImage from "@/assets/hero-aqua-farm.jpg";
-import dashboardPreview from "@/assets/dashboard-preview.jpg";
-import marketplaceProducts from "@/assets/marketplace-products.jpg";
+import heroVideo from "@/assets/hero-video.mp4";
 
 // Animated Counter Component
 const AnimatedCounter = ({ end, suffix = "", prefix = "", duration = 2000 }: { 
@@ -73,33 +71,25 @@ const AnimatedCounter = ({ end, suffix = "", prefix = "", duration = 2000 }: {
 const HeroSection = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [scrollY, setScrollY] = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
-  const slides = [
-    {
-      image: heroImage,
-      title: "Smart Pond Monitoring",
-      description: "Real-time water quality tracking"
-    },
-    {
-      image: dashboardPreview,
-      title: "Advanced Analytics",
-      description: "AI-powered insights dashboard"
-    },
-    {
-      image: marketplaceProducts,
-      title: "Complete Marketplace",
-      description: "All aquaculture supplies"
-    }
-  ];
-
-  // Auto-advance carousel
+  // Parallax scroll effect
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [slides.length]);
+    const handleScroll = () => {
+      if (sectionRef.current) {
+        const rect = sectionRef.current.getBoundingClientRect();
+        if (rect.bottom > 0) {
+          setScrollY(window.scrollY);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleGetStarted = () => {
     if (user) {
@@ -109,8 +99,12 @@ const HeroSection = () => {
     }
   };
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   const stats = [
     { value: 10000, label: "Active Farmers", icon: Users, suffix: "+" },
@@ -120,20 +114,72 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="hero-gradient min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-20 h-20 rounded-full bg-primary-glow/20 float-animation"></div>
-        <div className="absolute top-40 right-32 w-16 h-16 rounded-full bg-accent/20 float-animation" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-32 left-40 w-24 h-24 rounded-full bg-secondary/20 float-animation" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-60 left-1/3 w-12 h-12 rounded-full bg-white/10 float-animation" style={{ animationDelay: '0.5s' }}></div>
-        <div className="absolute bottom-48 right-1/4 w-14 h-14 rounded-full bg-accent/15 float-animation" style={{ animationDelay: '1.5s' }}></div>
+    <section ref={sectionRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Video Background with Parallax */}
+      <div 
+        className="absolute inset-0 z-0"
+        style={{ transform: `translateY(${scrollY * 0.4}px)` }}
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted={isMuted}
+          playsInline
+          className="w-full h-[120%] object-cover"
+          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E"
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
+        {/* Dark Overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/70 to-primary/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/60 via-transparent to-primary/60"></div>
       </div>
 
-      <div className="container mx-auto px-4 py-20 relative z-10">
+      {/* Mute/Unmute Button */}
+      <button
+        onClick={toggleMute}
+        className="absolute top-24 right-4 z-30 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+        aria-label={isMuted ? "Unmute video" : "Mute video"}
+      >
+        {isMuted ? (
+          <VolumeX className="w-5 h-5 text-white" />
+        ) : (
+          <Volume2 className="w-5 h-5 text-white" />
+        )}
+      </button>
+
+      {/* Animated background elements with parallax */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        <div 
+          className="absolute top-20 left-20 w-20 h-20 rounded-full bg-primary-glow/20 float-animation"
+          style={{ transform: `translateY(${scrollY * 0.2}px)` }}
+        ></div>
+        <div 
+          className="absolute top-40 right-32 w-16 h-16 rounded-full bg-accent/20 float-animation" 
+          style={{ animationDelay: '1s', transform: `translateY(${scrollY * 0.15}px)` }}
+        ></div>
+        <div 
+          className="absolute bottom-32 left-40 w-24 h-24 rounded-full bg-secondary/20 float-animation" 
+          style={{ animationDelay: '2s', transform: `translateY(${scrollY * 0.1}px)` }}
+        ></div>
+        <div 
+          className="absolute top-60 left-1/3 w-12 h-12 rounded-full bg-white/10 float-animation" 
+          style={{ animationDelay: '0.5s', transform: `translateY(${scrollY * 0.25}px)` }}
+        ></div>
+        <div 
+          className="absolute bottom-48 right-1/4 w-14 h-14 rounded-full bg-accent/15 float-animation" 
+          style={{ animationDelay: '1.5s', transform: `translateY(${scrollY * 0.3}px)` }}
+        ></div>
+      </div>
+
+      <div className="container mx-auto px-4 py-20 relative z-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Hero Content */}
-          <div className="text-center lg:text-left">
+          {/* Hero Content with Parallax */}
+          <div 
+            className="text-center lg:text-left"
+            style={{ transform: `translateY(${scrollY * -0.1}px)` }}
+          >
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-5 py-2.5 rounded-full mb-6 animate-fade-in border border-white/20">
               <Fish className="w-5 h-5 text-accent" />
               <span className="text-white font-semibold text-sm tracking-wide">India's #1 Smart Aqua Farming Platform</span>
@@ -178,116 +224,114 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Hero Image Carousel */}
-          <div className="relative animate-fade-in">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-              {/* Carousel */}
-              <div className="relative aspect-[4/3] overflow-hidden">
-                {slides.map((slide, index) => (
-                  <div
-                    key={index}
-                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-                      index === currentSlide 
-                        ? 'opacity-100 translate-x-0' 
-                        : index < currentSlide 
-                          ? 'opacity-0 -translate-x-full' 
-                          : 'opacity-0 translate-x-full'
-                    }`}
-                  >
-                    <img 
-                      src={slide.image} 
-                      alt={slide.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent"></div>
-                    
-                    {/* Slide Info */}
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-                        <h3 className="font-bold text-gray-800 text-lg">{slide.title}</h3>
-                        <p className="text-sm text-gray-600">{slide.description}</p>
-                      </div>
-                    </div>
+          {/* Hero Dashboard Preview with Parallax */}
+          <div 
+            className="relative animate-fade-in"
+            style={{ transform: `translateY(${scrollY * 0.05}px)` }}
+          >
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-white/10 backdrop-blur-sm p-6">
+              {/* Live Video Indicator */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1.5 rounded-full">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-white font-medium">LIVE FARM VIEW</span>
+                </div>
+                <Play className="w-4 h-4 text-white/60" />
+              </div>
+
+              {/* Mock Dashboard */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/95 rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Droplets className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-medium text-gray-700">Water Quality</span>
                   </div>
-                ))}
+                  <div className="text-2xl font-bold text-green-600">Excellent</div>
+                  <div className="text-xs text-gray-500 mt-1">pH 7.2 • DO 6.8 mg/L</div>
+                  <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 rounded-full" style={{ width: '92%' }}></div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium text-gray-700">Growth Rate</span>
+                  </div>
+                  <div className="text-2xl font-bold text-primary">+2.3%</div>
+                  <div className="text-xs text-gray-500 mt-1">Above average</div>
+                  <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full" style={{ width: '78%' }}></div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Thermometer className="w-5 h-5 text-orange-500" />
+                    <span className="text-sm font-medium text-gray-700">Temperature</span>
+                  </div>
+                  <div className="text-2xl font-bold text-orange-600">28°C</div>
+                  <div className="text-xs text-gray-500 mt-1">Optimal range</div>
+                  <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-orange-500 rounded-full" style={{ width: '70%' }}></div>
+                  </div>
+                </div>
+
+                <div className="bg-white/95 rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Waves className="w-5 h-5 text-blue-400" />
+                    <span className="text-sm font-medium text-gray-700">Salinity</span>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-600">15 ppt</div>
+                  <div className="text-xs text-gray-500 mt-1">Perfect level</div>
+                  <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: '85%' }}></div>
+                  </div>
+                </div>
               </div>
 
-              {/* Carousel Controls */}
-              <button
-                onClick={prevSlide}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-5 h-5 text-gray-700" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-5 h-5 text-gray-700" />
-              </button>
-
-              {/* Dots Indicator */}
-              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                {slides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                      index === currentSlide 
-                        ? 'bg-white w-8' 
-                        : 'bg-white/50 hover:bg-white/70'
-                    }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            {/* Enhanced floating metrics */}
-            <div className="absolute -top-3 -right-3 bg-white rounded-xl p-4 shadow-xl float-animation border border-gray-100">
-              <div className="flex items-center gap-2 mb-1">
-                <Droplets className="w-4 h-4 text-blue-500" />
-                <span className="text-sm font-medium text-gray-600">Water Quality</span>
-              </div>
-              <div className="text-xl font-bold text-success">Excellent</div>
-              <div className="text-xs text-gray-500 mt-1">pH 7.2 • DO 6.8 mg/L</div>
-            </div>
-            
-            <div className="absolute -bottom-3 -left-3 bg-white rounded-xl p-4 shadow-xl float-animation border border-gray-100" style={{ animationDelay: '1s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-green-500" />
-                <span className="text-sm font-medium text-gray-600">Daily Growth</span>
-              </div>
-              <div className="text-xl font-bold text-primary">+2.3%</div>
-              <div className="text-xs text-gray-500 mt-1">Above average</div>
-            </div>
-
-            <div className="absolute top-1/2 -left-6 transform -translate-y-1/2 bg-white rounded-xl p-3 shadow-xl float-animation border border-gray-100 hidden lg:block" style={{ animationDelay: '0.5s' }}>
-              <div className="flex items-center gap-2">
-                <Thermometer className="w-4 h-4 text-orange-500" />
+              {/* Alert Banner */}
+              <div className="mt-4 bg-green-500/20 border border-green-500/30 rounded-xl p-3 flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-green-400" />
                 <div>
-                  <div className="text-xs text-gray-500">Temp</div>
-                  <div className="text-sm font-bold text-gray-800">28°C</div>
+                  <div className="text-sm font-medium text-white">All Systems Healthy</div>
+                  <div className="text-xs text-white/70">No disease alerts detected</div>
                 </div>
               </div>
             </div>
-
-            <div className="absolute bottom-1/4 -right-4 bg-white rounded-xl p-3 shadow-xl float-animation border border-gray-100 hidden lg:block" style={{ animationDelay: '1.5s' }}>
-              <div className="flex items-center gap-2">
-                <Waves className="w-4 h-4 text-blue-400" />
-                <div>
-                  <div className="text-xs text-gray-500">Salinity</div>
-                  <div className="text-sm font-bold text-gray-800">15 ppt</div>
-                </div>
+            
+            {/* Floating elements with enhanced parallax */}
+            <div 
+              className="absolute -top-3 -right-3 bg-white rounded-xl p-4 shadow-xl float-animation border border-gray-100"
+              style={{ transform: `translateY(${scrollY * -0.15}px)` }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Award className="w-4 h-4 text-yellow-500" />
+                <span className="text-sm font-medium text-gray-600">AI Score</span>
               </div>
+              <div className="text-xl font-bold text-primary">98/100</div>
+              <div className="text-xs text-gray-500 mt-1">Farm health</div>
+            </div>
+            
+            <div 
+              className="absolute -bottom-3 -left-3 bg-white rounded-xl p-4 shadow-xl float-animation border border-gray-100" 
+              style={{ animationDelay: '1s', transform: `translateY(${scrollY * -0.2}px)` }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <BarChart3 className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-gray-600">Market Price</span>
+              </div>
+              <div className="text-xl font-bold text-green-600">₹485/kg</div>
+              <div className="text-xs text-gray-500 mt-1">30 count • Live</div>
             </div>
           </div>
         </div>
 
-        {/* Feature highlights - Enhanced */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-16 animate-fade-in">
+        {/* Feature highlights - Enhanced with parallax */}
+        <div 
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-16 animate-fade-in"
+          style={{ transform: `translateY(${scrollY * -0.05}px)` }}
+        >
           {[
             { icon: Droplets, label: "Water Monitoring", value: "Real-time Sensors", description: "pH, DO, Temp & more" },
             { icon: Fish, label: "Disease Detection", value: "AI-Powered", description: "95% accuracy rate" },
@@ -307,7 +351,14 @@ const HeroSection = () => {
       </div>
 
       {/* Wave animation at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 wave-animation opacity-30"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-20 wave-animation opacity-30 z-10"></div>
+      
+      {/* Scroll indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce">
+        <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
+          <div className="w-1 h-3 bg-white/50 rounded-full animate-pulse"></div>
+        </div>
+      </div>
     </section>
   );
 };

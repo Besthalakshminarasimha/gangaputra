@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 import DashboardPreview from "@/components/DashboardPreview";
 import MarketplaceSection from "@/components/MarketplaceSection";
 import FeaturesGrid from "@/components/FeaturesGrid";
@@ -23,6 +24,7 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
+        <TestimonialsCarousel />
         <DashboardPreview />
         <MarketplaceSection />
         <FeaturesGrid />
