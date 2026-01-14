@@ -73,10 +73,10 @@ const Footer = () => {
                 <Mail className="w-4 h-4 text-accent" />
                 <span className="text-muted-foreground">support@aquaflow.com</span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
+              <a href="tel:7569373499" className="flex items-center gap-3 text-sm hover:text-primary transition-colors">
                 <Phone className="w-4 h-4 text-accent" />
-                <span className="text-muted-foreground">+91 9876543210</span>
-              </div>
+                <span className="text-muted-foreground hover:text-primary">7569373499</span>
+              </a>
               <div className="flex items-center gap-3 text-sm">
                 <MapPin className="w-4 h-4 text-accent" />
                 <span className="text-muted-foreground">Bangalore, India</span>
