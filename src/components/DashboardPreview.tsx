@@ -1,9 +1,14 @@
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Droplets, Fish, Thermometer, Zap, DollarSign } from "lucide-react";
+import { motion, useInView } from "framer-motion";
 import dashboardImage from "@/assets/dashboard-preview.jpg";
 
 const DashboardPreview = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
   const metrics = [
     {
       title: "Water Quality",
@@ -49,10 +54,24 @@ const DashboardPreview = () => {
     }
   ];
 
+  const features = [
+    "Real-time IoT sensor monitoring",
+    "AI-powered growth predictions",
+    "Automated feeding schedules",
+    "Water quality alerts",
+    "Financial performance tracking",
+    "Mobile app synchronization"
+  ];
+
   return (
-    <section className="py-20 bg-gradient-to-b from-background to-muted/50">
+    <section ref={sectionRef} className="py-20 bg-gradient-to-b from-background to-muted/50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
+          className="text-center mb-16"
+        >
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Real-time Farm
             <span className="text-gradient"> Dashboard</span>
@@ -61,11 +80,16 @@ const DashboardPreview = () => {
             Monitor every aspect of your aqua farm with our comprehensive dashboard. 
             Track water quality, fish health, feeding schedules, and financial performance in real-time.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Dashboard Image */}
-          <div className="relative">
+          <motion.div 
+            initial={{ opacity: 0, x: -60 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -60 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.4, 0.25, 1] }}
+            className="relative"
+          >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border-gradient">
               <img 
                 src={dashboardImage} 
@@ -76,54 +100,81 @@ const DashboardPreview = () => {
             </div>
             
             {/* Floating notification */}
-            <div className="absolute top-4 right-4 glass-card p-3 animate-pulse">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="absolute top-4 right-4 glass-card p-3"
+            >
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full"></div>
+                <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
                 <span className="text-sm font-medium">All systems optimal</span>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Metrics Grid */}
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: 60 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 60 }}
+            transition={{ duration: 0.7, delay: 0.3, ease: [0.25, 0.4, 0.25, 1] }}
+            className="space-y-6"
+          >
             <div className="grid grid-cols-2 gap-4">
               {metrics.map((metric, index) => (
-                <Card key={index} className="metric-card group cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <metric.icon className={`w-6 h-6 ${metric.color}`} />
-                      <span className="text-xs text-muted-foreground">{metric.trend}</span>
-                    </div>
-                    <div className="text-2xl font-bold text-white">{metric.value}</div>
-                    <div className="text-sm text-white/80">{metric.title}</div>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                >
+                  <Card className="metric-card group cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <metric.icon className={`w-6 h-6 ${metric.color}`} />
+                        <span className="text-xs text-muted-foreground">{metric.trend}</span>
+                      </div>
+                      <div className="text-2xl font-bold text-white">{metric.value}</div>
+                      <div className="text-sm text-white/80">{metric.title}</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
             </div>
 
-            <div className="space-y-4">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="space-y-4"
+            >
               <h3 className="text-2xl font-bold">Key Features</h3>
               <ul className="space-y-3">
-                {[
-                  "Real-time IoT sensor monitoring",
-                  "AI-powered growth predictions",
-                  "Automated feeding schedules",
-                  "Water quality alerts",
-                  "Financial performance tracking",
-                  "Mobile app synchronization"
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-center gap-3">
+                {features.map((feature, index) => (
+                  <motion.li 
+                    key={index} 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                    transition={{ duration: 0.4, delay: 0.9 + index * 0.05 }}
+                    className="flex items-center gap-3"
+                  >
                     <div className="w-2 h-2 bg-accent rounded-full"></div>
                     <span className="text-muted-foreground">{feature}</span>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
 
-            <Button variant="ocean" size="lg" className="w-full">
-              Explore Dashboard
-            </Button>
-          </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: 1.1 }}
+            >
+              <Button variant="ocean" size="lg" className="w-full">
+                Explore Dashboard
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>

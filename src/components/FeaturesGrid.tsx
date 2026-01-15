@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion, useInView } from "framer-motion";
 import { 
   Brain, 
   Droplets, 
@@ -15,6 +17,9 @@ import {
 } from "lucide-react";
 
 const FeaturesGrid = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
   const features = [
     {
       icon: Brain,
@@ -90,10 +95,37 @@ const FeaturesGrid = () => {
     }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut" as const
+      }
+    }
+  };
+
   return (
-    <section className="py-20 bg-gradient-to-b from-background to-muted/30">
+    <section ref={sectionRef} className="py-20 bg-gradient-to-b from-background to-muted/30">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
+          className="text-center mb-16"
+        >
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Comprehensive
             <span className="text-gradient"> Platform Features</span>
@@ -102,57 +134,87 @@ const FeaturesGrid = () => {
             From IoT monitoring to financial services, our platform covers every aspect 
             of modern aqua farming with cutting-edge technology and expert support.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
           {features.map((feature, index) => (
-            <Card 
-              key={index} 
-              className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 glass-card border-0"
-            >
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-muted to-muted/50 group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className={`w-6 h-6 ${feature.color}`} />
+            <motion.div key={index} variants={itemVariants}>
+              <Card 
+                className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 glass-card border-0 h-full"
+              >
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <motion.div 
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                      className="p-3 rounded-lg bg-gradient-to-br from-muted to-muted/50"
+                    >
+                      <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                    </motion.div>
+                    <CardTitle className="text-lg">{feature.title}</CardTitle>
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {feature.description}
-                </p>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {feature.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Additional highlight section */}
-        <div className="mt-20 text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.6, delay: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
+          className="mt-20 text-center"
+        >
           <div className="glass-card max-w-4xl mx-auto p-8 border-gradient">
             <h3 className="text-2xl font-bold mb-4">Futuristic Features</h3>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="space-y-2">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="space-y-2"
+              >
                 <h4 className="font-semibold text-primary">AR Training</h4>
                 <p className="text-sm text-muted-foreground">
                   Augmented reality tutorials for pond setup and disease identification
                 </p>
-              </div>
-              <div className="space-y-2">
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                className="space-y-2"
+              >
                 <h4 className="font-semibold text-accent">Voice Commands</h4>
                 <p className="text-sm text-muted-foreground">
                   Multi-language voice control and IVR support for rural farmers
                 </p>
-              </div>
-              <div className="space-y-2">
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                transition={{ duration: 0.5, delay: 0.9 }}
+                className="space-y-2"
+              >
                 <h4 className="font-semibold text-secondary">Gamification</h4>
                 <p className="text-sm text-muted-foreground">
                   Earn badges for sustainable practices and water conservation
                 </p>
-              </div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

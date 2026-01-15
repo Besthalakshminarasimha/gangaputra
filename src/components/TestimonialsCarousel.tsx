@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion, useInView } from "framer-motion";
 
 const testimonials = [
   {
@@ -62,25 +63,8 @@ const testimonials = [
 
 const TestimonialsCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.2 }
-    );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -108,7 +92,12 @@ const TestimonialsCarousel = () => {
     >
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
+          className="text-center mb-16"
+        >
           <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
             <span className="text-sm font-semibold text-primary">Farmer Success Stories</span>
@@ -119,10 +108,15 @@ const TestimonialsCarousel = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Real stories from farmers who transformed their aquaculture business with Gangaputra
           </p>
-        </div>
+        </motion.div>
 
         {/* Carousel */}
-        <div className="relative max-w-6xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.4, 0.25, 1] }}
+          className="relative max-w-6xl mx-auto"
+        >
           {/* Cards Container */}
           <div className="relative h-[450px] md:h-[400px] flex items-center justify-center">
             {getVisibleTestimonials().map((testimonial, idx) => (
@@ -215,10 +209,15 @@ const TestimonialsCarousel = () => {
               />
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Trust Badges */}
-        <div className={`mt-16 text-center transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: [0.25, 0.4, 0.25, 1] }}
+          className="mt-16 text-center"
+        >
           <div className="flex flex-wrap justify-center gap-8 items-center">
             <div className="text-center">
               <div className="text-3xl font-bold text-primary">₹50Cr+</div>
@@ -240,7 +239,7 @@ const TestimonialsCarousel = () => {
               <div className="text-sm text-muted-foreground">User Rating</div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
