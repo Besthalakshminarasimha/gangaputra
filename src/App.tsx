@@ -2,25 +2,59 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
-import FAQ from "./pages/FAQ";
-import Farm from "./pages/Farm";
-import Aquapedia from "./pages/Aquapedia";
-import Calculators from "./pages/Calculators";
-import Store from "./pages/Store";
-import Orders from "./pages/Orders";
-import PriceAlertsHistory from "./pages/PriceAlertsHistory";
-import AdminAuth from "./pages/AdminAuth";
-import AdminDashboard from "./pages/AdminDashboard";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { Suspense, lazy } from "react";
+import PageTransition from "./components/PageTransition";
+import { PageSkeleton } from "./components/LoadingSkeletons";
 import BottomNavigation from "./components/BottomNavigation";
 import AIAssistant from "./components/AIAssistant";
 
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Profile = lazy(() => import("./pages/Profile"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Farm = lazy(() => import("./pages/Farm"));
+const Aquapedia = lazy(() => import("./pages/Aquapedia"));
+const Calculators = lazy(() => import("./pages/Calculators"));
+const Store = lazy(() => import("./pages/Store"));
+const Orders = lazy(() => import("./pages/Orders"));
+const PriceAlertsHistory = lazy(() => import("./pages/PriceAlertsHistory"));
+const AdminAuth = lazy(() => import("./pages/AdminAuth"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
 const queryClient = new QueryClient();
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Suspense fallback={<PageSkeleton />}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+          <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
+          <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+          <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
+          <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
+          <Route path="/farm" element={<PageTransition><Farm /></PageTransition>} />
+          <Route path="/aquapedia" element={<PageTransition><Aquapedia /></PageTransition>} />
+          <Route path="/calculators" element={<PageTransition><Calculators /></PageTransition>} />
+          <Route path="/store" element={<PageTransition><Store /></PageTransition>} />
+          <Route path="/orders" element={<PageTransition><Orders /></PageTransition>} />
+          <Route path="/price-alerts" element={<PageTransition><PriceAlertsHistory /></PageTransition>} />
+          <Route path="/admin" element={<PageTransition><AdminAuth /></PageTransition>} />
+          <Route path="/admin/dashboard" element={<PageTransition><AdminDashboard /></PageTransition>} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+        </Routes>
+      </Suspense>
+    </AnimatePresence>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -29,23 +63,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <div className="relative">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/farm" element={<Farm />} />
-            <Route path="/aquapedia" element={<Aquapedia />} />
-            <Route path="/calculators" element={<Calculators />} />
-            <Route path="/store" element={<Store />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/price-alerts" element={<PriceAlertsHistory />} />
-            <Route path="/admin" element={<AdminAuth />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AnimatedRoutes />
           <BottomNavigation />
           <AIAssistant />
         </div>
