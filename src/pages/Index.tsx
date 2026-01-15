@@ -8,6 +8,7 @@ import DashboardPreview from "@/components/DashboardPreview";
 import MarketplaceSection from "@/components/MarketplaceSection";
 import FeaturesGrid from "@/components/FeaturesGrid";
 import Footer from "@/components/Footer";
+import FloatingSupportWidget from "@/components/FloatingSupportWidget";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const Index = () => {
         <FeaturesGrid />
       </main>
       <Footer />
+      <FloatingSupportWidget />
     </div>
   );
 };

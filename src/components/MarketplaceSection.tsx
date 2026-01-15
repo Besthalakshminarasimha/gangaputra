@@ -1,10 +1,15 @@
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Star, Truck, Shield } from "lucide-react";
+import { motion, useInView } from "framer-motion";
 import marketplaceImage from "@/assets/marketplace-products.jpg";
 
 const MarketplaceSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
   const products = [
     {
       name: "Smart Auto-Feeder Pro",
@@ -59,9 +64,14 @@ const MarketplaceSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-muted/50 to-background">
+    <section ref={sectionRef} className="py-20 bg-gradient-to-b from-muted/50 to-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
+          className="text-center mb-16"
+        >
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Aqua Farming
             <span className="text-gradient"> Marketplace</span>
@@ -70,11 +80,16 @@ const MarketplaceSection = () => {
             Everything you need for successful aqua farming. From IoT devices and feed to 
             equipment and medicines - all in one place with expert recommendations.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Marketplace Image */}
-          <div className="relative">
+          <motion.div 
+            initial={{ opacity: 0, x: -60 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -60 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.4, 0.25, 1] }}
+            className="relative"
+          >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <img 
                 src={marketplaceImage} 
@@ -87,66 +102,89 @@ const MarketplaceSection = () => {
             {/* Benefits */}
             <div className="mt-8 space-y-4">
               {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-4 glass-card p-4">
+                <motion.div 
+                  key={index} 
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
+                  transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                  className="flex items-start gap-4 glass-card p-4"
+                >
                   <benefit.icon className="w-6 h-6 text-accent flex-shrink-0 mt-1" />
                   <div>
                     <h4 className="font-semibold mb-1">{benefit.title}</h4>
                     <p className="text-sm text-muted-foreground">{benefit.description}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Product Grid */}
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: 60 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 60 }}
+            transition={{ duration: 0.7, delay: 0.3, ease: [0.25, 0.4, 0.25, 1] }}
+            className="space-y-6"
+          >
             <div className="grid gap-4">
               {products.map((product, index) => (
-                <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{product.name}</CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-2xl font-bold text-primary">{product.price}</span>
-                          <Badge variant="secondary">{product.category}</Badge>
-                          {product.badge && (
-                            <Badge variant="outline" className="text-accent border-accent">
-                              {product.badge}
-                            </Badge>
-                          )}
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                >
+                  <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{product.name}</CardTitle>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-2xl font-bold text-primary">{product.price}</span>
+                            <Badge variant="secondary">{product.category}</Badge>
+                            {product.badge && (
+                              <Badge variant="outline" className="text-accent border-accent">
+                                {product.badge}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-medium">{product.rating}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">{product.rating}</span>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <ul className="space-y-1 mb-4">
-                      {product.features.map((feature, idx) => (
-                        <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button variant="aqua" className="w-full group">
-                      <ShoppingCart className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                      Add to Cart
-                    </Button>
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <ul className="space-y-1 mb-4">
+                        {product.features.map((feature, idx) => (
+                          <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button variant="aqua" className="w-full group">
+                        <ShoppingCart className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                        Add to Cart
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
             </div>
 
-            <div className="text-center pt-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+              className="text-center pt-6"
+            >
               <Button variant="ocean" size="lg">
                 Browse All Products
               </Button>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>
