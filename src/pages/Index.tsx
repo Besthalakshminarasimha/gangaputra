@@ -9,6 +9,7 @@ import MarketplaceSection from "@/components/MarketplaceSection";
 import FeaturesGrid from "@/components/FeaturesGrid";
 import Footer from "@/components/Footer";
 import FloatingSupportWidget from "@/components/FloatingSupportWidget";
+import StickyCtaButton from "@/components/StickyCtaButton";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const Index = () => {
       </main>
       <Footer />
       <FloatingSupportWidget />
+      <StickyCtaButton />
     </div>
   );
 };
