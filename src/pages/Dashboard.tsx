@@ -26,6 +26,9 @@ import ConnectionQualityWidget from "@/components/ConnectionQualityWidget";
 import PriceHistoryChart from "@/components/PriceHistoryChart";
 import PricePrediction from "@/components/PricePrediction";
 import PriceExport from "@/components/PriceExport";
+import UpdatesCarousel from "@/components/UpdatesCarousel";
+import ScrollProgressBar from "@/components/ScrollProgressBar";
+import ThemeToggle from "@/components/ThemeToggle";
 import { 
   Fish,
   Zap, 
@@ -422,6 +425,8 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      {/* Scroll Progress Bar */}
+      <ScrollProgressBar />
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-primary-dark p-6 text-primary-foreground">
         <div className="flex items-center justify-between">
@@ -429,7 +434,8 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold mb-2">Farm Dashboard</h1>
             <p className="text-primary-foreground/80">Welcome back! Here's your farm overview</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button 
               variant="outline" 
               size="sm" 
@@ -453,6 +459,9 @@ const Dashboard = () => {
       </div>
 
       <div className="p-4 space-y-6">
+        {/* Admin Updates Carousel - At the top */}
+        <UpdatesCarousel />
+
         {/* Daily Updates Banner */}
         {visibleUpdates.length > 0 && (
           <div className="space-y-2">

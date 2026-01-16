@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_carousel_updates: {
+        Row: {
+          content: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          media_type: string
+          media_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          media_type: string
+          media_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          media_type?: string
+          media_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       answers: {
         Row: {
           content: string

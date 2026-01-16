@@ -10,6 +10,7 @@ import FeaturesGrid from "@/components/FeaturesGrid";
 import Footer from "@/components/Footer";
 import FloatingSupportWidget from "@/components/FloatingSupportWidget";
 import StickyCtaButton from "@/components/StickyCtaButton";
+import ScrollProgressBar from "@/components/ScrollProgressBar";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ScrollProgressBar />
       <Header />
       <main>
         <HeroSection />
