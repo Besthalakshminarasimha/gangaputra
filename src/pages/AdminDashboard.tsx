@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image } from "lucide-react";
+import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart } from "lucide-react";
 import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
@@ -17,6 +17,7 @@ import AdminProducts from "@/components/admin/AdminProducts";
 import AdminDailyUpdates from "@/components/admin/AdminDailyUpdates";
 import AdminOrders from "@/components/admin/AdminOrders";
 import AdminCarouselUpdates from "@/components/admin/AdminCarouselUpdates";
+import AdminCarouselAnalytics from "@/components/admin/AdminCarouselAnalytics";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -158,6 +159,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="manuals"><FileText className="h-4 w-4 mr-1" />Manuals</TabsTrigger>
             <TabsTrigger value="products"><ShoppingBag className="h-4 w-4 mr-1" />Products</TabsTrigger>
             <TabsTrigger value="carousel"><Image className="h-4 w-4 mr-1" />Carousel</TabsTrigger>
+            <TabsTrigger value="carousel-analytics"><PieChart className="h-4 w-4 mr-1" />Carousel Stats</TabsTrigger>
             <TabsTrigger value="updates"><Bell className="h-4 w-4 mr-1" />Updates</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" />Analytics</TabsTrigger>
             <TabsTrigger value="export"><Download className="h-4 w-4 mr-1" />Export</TabsTrigger>
@@ -171,6 +173,7 @@ const AdminDashboard = () => {
           <TabsContent value="manuals"><AdminCropManuals /></TabsContent>
           <TabsContent value="products"><AdminProducts /></TabsContent>
           <TabsContent value="carousel"><AdminCarouselUpdates /></TabsContent>
+          <TabsContent value="carousel-analytics"><AdminCarouselAnalytics /></TabsContent>
           <TabsContent value="updates"><AdminDailyUpdates /></TabsContent>
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
           <TabsContent value="export"><AdminExport /></TabsContent>

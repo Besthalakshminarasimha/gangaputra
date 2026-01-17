@@ -9,6 +9,7 @@ import PageTransition from "./components/PageTransition";
 import { PageSkeleton } from "./components/LoadingSkeletons";
 import BottomNavigation from "./components/BottomNavigation";
 import AIAssistant from "./components/AIAssistant";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -56,17 +57,25 @@ const AnimatedRoutes = () => {
   );
 };
 
+// Wrapper component to use keyboard shortcuts inside Router
+const KeyboardShortcutsProvider = ({ children }: { children: React.ReactNode }) => {
+  useKeyboardShortcuts();
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="relative">
-          <AnimatedRoutes />
-          <BottomNavigation />
-          <AIAssistant />
-        </div>
+        <KeyboardShortcutsProvider>
+          <div className="relative">
+            <AnimatedRoutes />
+            <BottomNavigation />
+            <AIAssistant />
+          </div>
+        </KeyboardShortcutsProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

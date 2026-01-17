@@ -3,10 +3,27 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
-import { Mail, Bell, TrendingUp, Newspaper, ShoppingCart, Loader2 } from "lucide-react";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { Mail, Bell, TrendingUp, Newspaper, ShoppingCart, Loader2, Volume2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const NotificationPreferences = () => {
   const { preferences, loading, saving, updatePreference } = useNotificationPreferences();
+  const { setSoundEnabled, isSoundEnabled, playNotificationSound } = useNotificationSound();
+  const [soundEnabled, setSoundEnabledState] = useState(true);
+
+  useEffect(() => {
+    setSoundEnabledState(isSoundEnabled());
+  }, [isSoundEnabled]);
+
+  const handleSoundToggle = (enabled: boolean) => {
+    setSoundEnabledState(enabled);
+    setSoundEnabled(enabled);
+    if (enabled) {
+      // Play a preview sound when enabling
+      playNotificationSound();
+    }
+  };
 
   if (loading) {
     return (
@@ -147,6 +164,35 @@ const NotificationPreferences = () => {
               checked={preferences.push_price_alerts}
               onCheckedChange={(checked) => updatePreference('push_price_alerts', checked)}
               disabled={saving}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sound Preferences */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Volume2 className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg">Sound Preferences</CardTitle>
+          </div>
+          <CardDescription>
+            Control audio feedback for notifications
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Volume2 className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <Label htmlFor="notification_sound" className="font-medium">Notification Sounds</Label>
+                <p className="text-sm text-muted-foreground">Play a sound when new notifications arrive</p>
+              </div>
+            </div>
+            <Switch
+              id="notification_sound"
+              checked={soundEnabled}
+              onCheckedChange={handleSoundToggle}
             />
           </div>
         </CardContent>
