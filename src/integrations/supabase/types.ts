@@ -88,6 +88,38 @@ export type Database = {
           },
         ]
       }
+      carousel_analytics: {
+        Row: {
+          created_at: string
+          id: string
+          update_id: string
+          user_id: string | null
+          view_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          update_id: string
+          user_id?: string | null
+          view_type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          update_id?: string
+          user_id?: string | null
+          view_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carousel_analytics_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "admin_carousel_updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crop_manuals: {
         Row: {
           content: string | null
