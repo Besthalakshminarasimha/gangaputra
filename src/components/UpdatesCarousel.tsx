@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,26 @@ const UpdatesCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [loading, setLoading] = useState(true);
+  const viewedUpdatesRef = useRef<Set<string>>(new Set());
+
+  // Track view for analytics
+  const trackView = useCallback(async (updateId: string, viewType: 'view' | 'click' = 'view') => {
+    // Only track each view once per session
+    const trackingKey = `${updateId}-${viewType}`;
+    if (viewedUpdatesRef.current.has(trackingKey)) return;
+    
+    viewedUpdatesRef.current.add(trackingKey);
+    
+    try {
+      await supabase.from('carousel_analytics').insert({
+        update_id: updateId,
+        view_type: viewType,
+      });
+    } catch (error) {
+      // Silently fail - analytics shouldn't break the UI
+      console.error('Failed to track carousel view:', error);
+    }
+  }, []);
 
   useEffect(() => {
     fetchUpdates();
@@ -45,6 +65,13 @@ const UpdatesCarousel = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Track view when slide changes
+  useEffect(() => {
+    if (updates.length > 0 && updates[currentIndex]) {
+      trackView(updates[currentIndex].id, 'view');
+    }
+  }, [currentIndex, updates, trackView]);
 
   // Auto-play
   useEffect(() => {
@@ -78,6 +105,12 @@ const UpdatesCarousel = () => {
     setCurrentIndex((prev) => (prev + 1) % updates.length);
   };
 
+  const handleCardClick = () => {
+    if (updates[currentIndex]) {
+      trackView(updates[currentIndex].id, 'click');
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-full h-48 bg-muted animate-pulse rounded-xl" />
@@ -91,7 +124,7 @@ const UpdatesCarousel = () => {
   const currentUpdate = updates[currentIndex];
 
   return (
-    <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-primary/5 to-secondary/5">
+    <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-primary/5 to-secondary/5 cursor-pointer" onClick={handleCardClick}>
       <CardContent className="p-0 relative">
         <AnimatePresence mode="wait">
           <motion.div
