@@ -2,7 +2,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Pause, Share2, Link, Twitter, Facebook, ImageOff } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CarouselUpdate {
@@ -111,6 +118,39 @@ const UpdatesCarousel = () => {
     }
   };
 
+  const handleShare = async (platform: 'copy' | 'twitter' | 'facebook') => {
+    const update = updates[currentIndex];
+    if (!update) return;
+
+    const shareUrl = `${window.location.origin}/dashboard?update=${update.id}`;
+    const shareText = `${update.title}${update.description ? ` - ${update.description}` : ''}`;
+
+    switch (platform) {
+      case 'copy':
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success("Link copied to clipboard!");
+        } catch {
+          toast.error("Failed to copy link");
+        }
+        break;
+      case 'twitter':
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+          '_blank',
+          'noopener,noreferrer'
+        );
+        break;
+      case 'facebook':
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+          '_blank',
+          'noopener,noreferrer'
+        );
+        break;
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-full h-48 bg-muted animate-pulse rounded-xl" />
@@ -156,14 +196,21 @@ const UpdatesCarousel = () => {
               </div>
             ) : currentUpdate.media_type === 'image' || currentUpdate.media_type === 'gif' ? (
               <div className="relative aspect-video bg-muted">
-                {currentUpdate.media_url && (
+                {currentUpdate.media_url ? (
                   <img
                     src={currentUpdate.media_url}
                     alt={currentUpdate.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
                   />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+                    <ImageOff className="h-12 w-12 text-muted-foreground/50" />
+                  </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                   <h3 className="font-bold text-lg">{currentUpdate.title}</h3>
                   {currentUpdate.description && (
@@ -205,8 +252,36 @@ const UpdatesCarousel = () => {
               <ChevronRight className="h-5 w-5" />
             </Button>
 
-            {/* Play/Pause & Dots */}
+            {/* Play/Pause, Share & Dots */}
             <div className="absolute bottom-2 right-2 flex items-center gap-2">
+              {/* Share Button */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm rounded-full transition-all duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[150px]">
+                  <DropdownMenuItem onClick={() => handleShare('copy')}>
+                    <Link className="h-4 w-4 mr-2" />
+                    Copy Link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare('twitter')}>
+                    <Twitter className="h-4 w-4 mr-2" />
+                    Share on X
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare('facebook')}>
+                    <Facebook className="h-4 w-4 mr-2" />
+                    Share on Facebook
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button
                 variant="ghost"
                 size="icon"
