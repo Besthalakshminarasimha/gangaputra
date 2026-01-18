@@ -29,6 +29,7 @@ import PriceExport from "@/components/PriceExport";
 import UpdatesCarousel from "@/components/UpdatesCarousel";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import ThemeToggle from "@/components/ThemeToggle";
+import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
 import { 
   Fish,
   Zap, 
@@ -435,6 +436,7 @@ const Dashboard = () => {
             <p className="text-primary-foreground/80">Welcome back! Here's your farm overview</p>
           </div>
           <div className="flex items-center gap-2">
+            <KeyboardShortcutsModal showTriggerButton />
             <ThemeToggle />
             <Button 
               variant="outline" 
