@@ -255,6 +255,51 @@ export type Database = {
         }
         Relationships: []
       }
+      hatcheries: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          location: string
+          name: string
+          phone: string | null
+          region: string
+          species: string
+          type: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          location: string
+          name: string
+          phone?: string | null
+          region: string
+          species: string
+          type: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string
+          name?: string
+          phone?: string | null
+          region?: string
+          species?: string
+          type?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       magazines: {
         Row: {
           content: string | null
@@ -288,6 +333,57 @@ export type Database = {
           published_date?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      medicines: {
+        Row: {
+          active_ingredient: string | null
+          approved: boolean | null
+          category: string
+          created_at: string
+          description: string | null
+          dosage: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          manufacturer: string
+          name: string
+          price: number | null
+          updated_at: string
+          uses: string | null
+        }
+        Insert: {
+          active_ingredient?: string | null
+          approved?: boolean | null
+          category: string
+          created_at?: string
+          description?: string | null
+          dosage?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          manufacturer: string
+          name: string
+          price?: number | null
+          updated_at?: string
+          uses?: string | null
+        }
+        Update: {
+          active_ingredient?: string | null
+          approved?: boolean | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          dosage?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          manufacturer?: string
+          name?: string
+          price?: number | null
+          updated_at?: string
+          uses?: string | null
         }
         Relationships: []
       }
