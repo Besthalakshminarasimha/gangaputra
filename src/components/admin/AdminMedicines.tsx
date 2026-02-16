@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Edit, Trash2, CheckCircle, XCircle, Upload } from "lucide-react";
+import BulkImport from "./BulkImport";
 
 interface Medicine {
   id: string;
@@ -366,6 +367,8 @@ const AdminMedicines = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      <BulkImport type="medicines" onImportComplete={fetchMedicines} />
 
       <div className="grid gap-4 md:grid-cols-2">
         {medicines.map((medicine) => (
