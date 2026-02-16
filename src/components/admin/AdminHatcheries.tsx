@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Edit, Trash2, MapPin, Phone, Mail, Globe } from "lucide-react";
+import BulkImport from "./BulkImport";
 
 interface Hatchery {
   id: string;
@@ -20,6 +21,8 @@ interface Hatchery {
   phone: string | null;
   email: string | null;
   website: string | null;
+  latitude: number | null;
+  longitude: number | null;
   is_active: boolean;
   created_at: string;
 }
@@ -52,6 +55,8 @@ const AdminHatcheries = () => {
     phone: "",
     email: "",
     website: "",
+    latitude: "",
+    longitude: "",
     is_active: true,
   });
 
@@ -85,6 +90,8 @@ const AdminHatcheries = () => {
       phone: formData.phone || null,
       email: formData.email || null,
       website: formData.website || null,
+      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       is_active: formData.is_active,
     };
 
@@ -137,6 +144,8 @@ const AdminHatcheries = () => {
       phone: "",
       email: "",
       website: "",
+      latitude: "",
+      longitude: "",
       is_active: true,
     });
     setEditingHatchery(null);
@@ -154,6 +163,8 @@ const AdminHatcheries = () => {
       phone: hatchery.phone || "",
       email: hatchery.email || "",
       website: hatchery.website || "",
+      latitude: hatchery.latitude?.toString() || "",
+      longitude: hatchery.longitude?.toString() || "",
       is_active: hatchery.is_active,
     });
     setDialogOpen(true);
@@ -280,6 +291,31 @@ const AdminHatcheries = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="latitude">Latitude</Label>
+                  <Input
+                    id="latitude"
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                    placeholder="e.g., 14.4426"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="longitude">Longitude</Label>
+                  <Input
+                    id="longitude"
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                    placeholder="e.g., 79.9865"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center gap-2">
                 <Switch
                   id="is_active"
@@ -301,6 +337,8 @@ const AdminHatcheries = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      <BulkImport type="hatcheries" onImportComplete={fetchHatcheries} />
 
       <div className="grid gap-4">
         {hatcheries.map((hatchery) => (

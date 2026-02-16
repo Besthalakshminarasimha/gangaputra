@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import AquaNews from "@/components/AquaNews";
 import Community from "@/components/Community";
+import HatcheryMap from "@/components/HatcheryMap";
 import { 
   Search, 
   MapPin, 
@@ -24,7 +25,8 @@ import {
   Mail,
   Globe,
   CheckCircle,
-  XCircle
+  XCircle,
+  Map
 } from "lucide-react";
 
 interface Hatchery {
@@ -37,6 +39,8 @@ interface Hatchery {
   phone: string | null;
   email: string | null;
   website: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface Medicine {
@@ -60,6 +64,7 @@ const Aquapedia = () => {
   const [selectedRegion, setSelectedRegion] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const { toast } = useToast();
 
@@ -115,9 +120,9 @@ const Aquapedia = () => {
 
   // Combine database hatcheries with fallback hardcoded data if database is empty
   const hatcheries: Hatchery[] = dbHatcheries.length > 0 ? dbHatcheries : [
-    { id: "1", name: "Alpha Hatchery", location: "Nellore", region: "Andhra Pradesh", type: "Private", species: "L. vannamei", phone: "9394930100", email: null, website: null },
-    { id: "2", name: "Nellore Hatcheries", location: "Nellore", region: "Andhra Pradesh", type: "Private", species: "Shrimp", phone: "9849049118", email: null, website: null },
-    { id: "3", name: "Srinidhi Biotechnologies", location: "Anakapalli", region: "Andhra Pradesh", type: "Private", species: "L. vannamei", phone: "9849444057", email: null, website: null },
+    { id: "1", name: "Alpha Hatchery", location: "Nellore", region: "Andhra Pradesh", type: "Private", species: "L. vannamei", phone: "9394930100", email: null, website: null, latitude: 14.4426, longitude: 79.9865 },
+    { id: "2", name: "Nellore Hatcheries", location: "Nellore", region: "Andhra Pradesh", type: "Private", species: "Shrimp", phone: "9849049118", email: null, website: null, latitude: 14.4510, longitude: 79.9868 },
+    { id: "3", name: "Srinidhi Biotechnologies", location: "Anakapalli", region: "Andhra Pradesh", type: "Private", species: "L. vannamei", phone: "9849444057", email: null, website: null, latitude: 17.6914, longitude: 83.0038 },
   ];
 
   // Combine database medicines with fallback hardcoded data if database is empty
@@ -257,10 +262,24 @@ const Aquapedia = () => {
           <TabsContent value="hatcheries" className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">Major Hatcheries</h2>
-              <Badge variant="outline">
-                {loadingData ? "Loading..." : `${filteredHatcheries.length} found`}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={showMap ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowMap(!showMap)}
+                >
+                  <Map className="h-4 w-4 mr-1" />
+                  {showMap ? "List" : "Map"}
+                </Button>
+                <Badge variant="outline">
+                  {loadingData ? "Loading..." : `${filteredHatcheries.length} found`}
+                </Badge>
+              </div>
             </div>
+
+            {showMap && (
+              <HatcheryMap hatcheries={filteredHatcheries as any} />
+            )}
 
             {loadingData ? (
               <p className="text-center text-muted-foreground py-8">Loading hatcheries...</p>
