@@ -20,15 +20,33 @@ serve(async (req) => {
 
     console.log("Disease prediction request - symptoms:", symptoms ? "yes" : "no", "image:", imageBase64 ? "yes" : "no");
 
-    const systemPrompt = `You are an expert aquaculture veterinarian and disease diagnostician with 20+ years of experience in shrimp and fish diseases. Your task is to analyze symptoms and/or images to identify diseases in aquaculture species.
+    const systemPrompt = `You are an expert aquaculture veterinarian and disease diagnostician with 20+ years of experience in shrimp and fish diseases. Your task is to analyze symptoms and/or images to identify the top 3 most likely diseases (differential diagnoses) in aquaculture species.
 
 You MUST respond with ONLY a valid JSON object in this exact format, nothing else:
 {
-  "disease": "Full disease name",
-  "confidence": <number 0-100>,
-  "treatment": "Detailed, actionable treatment steps",
-  "prevention": "Specific prevention measures",
-  "severity": "<low|medium|high>"
+  "diagnoses": [
+    {
+      "disease": "Most likely disease name",
+      "confidence": <number 0-100>,
+      "treatment": "Detailed, actionable treatment steps",
+      "prevention": "Specific prevention measures",
+      "severity": "<low|medium|high>"
+    },
+    {
+      "disease": "Second most likely disease",
+      "confidence": <number 0-100>,
+      "treatment": "Detailed treatment",
+      "prevention": "Prevention measures",
+      "severity": "<low|medium|high>"
+    },
+    {
+      "disease": "Third most likely disease",
+      "confidence": <number 0-100>,
+      "treatment": "Detailed treatment",
+      "prevention": "Prevention measures",
+      "severity": "<low|medium|high>"
+    }
+  ]
 }
 
 Common aquaculture diseases to consider:
@@ -36,8 +54,9 @@ SHRIMP: White Spot Syndrome (WSSV), Early Mortality Syndrome (EMS/AHPND), Vibrio
 FISH: Epizootic Ulcerative Syndrome (EUS), Columnaris Disease, Ichthyophthirius (White Spot/Ich), Streptococcosis, Aeromonas infections, Gill Rot, Fin Rot, Dropsy, Saprolegniasis (Fungal infections), Viral Nervous Necrosis (VNN)
 
 Guidelines:
-- Base confidence on how well symptoms/image match known disease patterns
-- If symptoms are vague, give lower confidence and mention differential diagnoses in treatment
+- Rank diagnoses from most to least likely
+- Confidence values should reflect realistic probability and sum should not exceed 150
+- If symptoms are vague, give lower confidence and consider broader differentials
 - Always recommend consulting a vet in treatment
 - Be specific about medications, dosages, and water parameters in treatment
 - Include biosecurity measures in prevention`;
@@ -48,18 +67,16 @@ Guidelines:
     if (imageBase64) {
       userContent.push({
         type: "image_url",
-        image_url: {
-          url: imageBase64, // Already includes data:image/... prefix
-        },
+        image_url: { url: imageBase64 },
       });
       userContent.push({
         type: "text",
-        text: `Analyze this image of an aquaculture specimen for disease identification.${symptoms ? ` Additional symptoms observed: ${symptoms}` : ""} Respond with ONLY the JSON object.`,
+        text: `Analyze this image of an aquaculture specimen for disease identification.${symptoms ? ` Additional symptoms observed: ${symptoms}` : ""} Provide top 3 differential diagnoses. Respond with ONLY the JSON object.`,
       });
     } else {
       userContent.push({
         type: "text",
-        text: `Identify the most likely aquaculture disease based on these symptoms: ${symptoms}. Respond with ONLY the JSON object.`,
+        text: `Identify the top 3 most likely aquaculture diseases based on these symptoms: ${symptoms}. Respond with ONLY the JSON object.`,
       });
     }
 
@@ -107,18 +124,24 @@ Guidelines:
     console.log("AI response content:", content);
 
     // Extract JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*?\}/);
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         const parsed = JSON.parse(jsonMatch[0]);
+        const diagnoses = (parsed.diagnoses || []).slice(0, 3).map((d: any) => ({
+          disease: d.disease || "Unknown Disease",
+          confidence: Math.min(100, Math.max(0, d.confidence || 50)),
+          treatment: d.treatment || "Consult a qualified aquaculture veterinarian.",
+          prevention: d.prevention || "Maintain optimal water quality and biosecurity.",
+          severity: ["low", "medium", "high"].includes(d.severity) ? d.severity : "medium",
+        }));
+
+        if (diagnoses.length === 0) {
+          throw new Error("No diagnoses parsed");
+        }
+
         return new Response(
-          JSON.stringify({
-            disease: parsed.disease || "Unknown Disease",
-            confidence: Math.min(100, Math.max(0, parsed.confidence || 50)),
-            treatment: parsed.treatment || "Consult a qualified aquaculture veterinarian for proper diagnosis.",
-            prevention: parsed.prevention || "Maintain optimal water quality and biosecurity protocols.",
-            severity: ["low", "medium", "high"].includes(parsed.severity) ? parsed.severity : "medium",
-          }),
+          JSON.stringify({ diagnoses }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch (parseErr) {
