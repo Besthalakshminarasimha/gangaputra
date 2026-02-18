@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, Upload, AlertTriangle, CheckCircle, Loader2, Brain, Stethoscope } from "lucide-react";
+import { Camera, AlertTriangle, Loader2, Brain, Stethoscope } from "lucide-react";
 
 interface PredictionResult {
   disease: string;
@@ -20,6 +20,7 @@ interface PredictionResult {
 const AIDiseasePredictor = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [symptoms, setSymptoms] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<PredictionResult | null>(null);
@@ -28,15 +29,27 @@ const AIDiseasePredictor = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please upload an image under 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
       setImageFile(file);
       const reader = new FileReader();
-      reader.onload = () => setImagePreview(reader.result as string);
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        setImagePreview(dataUrl);
+        setImageBase64(dataUrl);
+      };
       reader.readAsDataURL(file);
     }
   };
 
   const analyzeDisease = async () => {
-    if (!imageFile && !symptoms) {
+    if (!imageBase64 && !symptoms.trim()) {
       toast({
         title: "Input Required",
         description: "Please upload an image or describe symptoms",
@@ -49,66 +62,42 @@ const AIDiseasePredictor = () => {
     setResult(null);
 
     try {
-      // Call AI function for analysis
-      const prompt = `Analyze this aquaculture disease case. 
-Symptoms described: ${symptoms || "Not provided"}
-${imageFile ? "An image of the affected specimen has been uploaded." : "No image provided."}
-
-Based on common shrimp and fish diseases, provide a diagnosis in this exact JSON format:
-{
-  "disease": "Disease Name",
-  "confidence": 85,
-  "treatment": "Treatment recommendation",
-  "prevention": "Prevention measures",
-  "severity": "medium"
-}`;
-
-      const { data, error } = await supabase.functions.invoke('ai-chat', {
-        body: { 
-          messages: [{ role: "user", content: prompt }]
+      const { data, error } = await supabase.functions.invoke('ai-disease-predict', {
+        body: {
+          symptoms: symptoms.trim() || null,
+          imageBase64: imageBase64 || null,
         }
       });
 
       if (error) throw error;
 
-      // Parse AI response
-      const responseText = data?.response || data?.message || "";
-      
-      // Try to extract JSON from response
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        setResult({
-          disease: parsed.disease || "Unknown Disease",
-          confidence: parsed.confidence || 70,
-          treatment: parsed.treatment || "Consult a veterinarian for proper diagnosis",
-          prevention: parsed.prevention || "Maintain water quality and biosecurity",
-          severity: parsed.severity || "medium"
+      if (data?.error) {
+        toast({
+          title: "Analysis Error",
+          description: data.error,
+          variant: "destructive"
         });
-      } else {
-        // Fallback result
-        setResult({
-          disease: "Possible Bacterial Infection",
-          confidence: 65,
-          treatment: "Isolate affected specimens, treat with approved antibiotics, maintain optimal water quality",
-          prevention: "Regular water quality monitoring, proper stocking density, biosecurity protocols",
-          severity: "medium"
-        });
+        return;
       }
+
+      setResult({
+        disease: data.disease,
+        confidence: data.confidence,
+        treatment: data.treatment,
+        prevention: data.prevention,
+        severity: data.severity,
+      });
 
       toast({
         title: "Analysis Complete",
-        description: "Disease prediction generated successfully",
+        description: `Identified: ${data.disease} (${data.confidence}% confidence)`,
       });
     } catch (error) {
       console.error('Analysis error:', error);
-      // Show demo result on error
-      setResult({
-        disease: "White Spot Syndrome (WSSV)",
-        confidence: 78,
-        treatment: "No cure available. Remove infected stock, disinfect pond, allow 30-day dry period before restocking.",
-        prevention: "Screen PLs for WSSV, maintain biosecurity, avoid stress factors, use SPF stock.",
-        severity: "high"
+      toast({
+        title: "Analysis Failed",
+        description: "Could not complete the analysis. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsAnalyzing(false);
@@ -150,6 +139,7 @@ Based on common shrimp and fish diseases, provide a diagnosis in this exact JSON
                   onClick={() => {
                     setImageFile(null);
                     setImagePreview(null);
+                    setImageBase64(null);
                   }}
                 >
                   Remove Image
@@ -160,7 +150,7 @@ Based on common shrimp and fish diseases, provide a diagnosis in this exact JSON
                 <div className="space-y-2">
                   <Camera className="h-8 w-8 mx-auto text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
-                    Click to upload or take a photo
+                    Click to upload or take a photo (max 5MB)
                   </p>
                 </div>
                 <Input
@@ -177,10 +167,10 @@ Based on common shrimp and fish diseases, provide a diagnosis in this exact JSON
 
         {/* Symptoms Input */}
         <div className="space-y-2">
-          <Label htmlFor="symptoms">Describe Symptoms (Optional)</Label>
+          <Label htmlFor="symptoms">Describe Symptoms</Label>
           <Textarea
             id="symptoms"
-            placeholder="E.g., white spots on shell, lethargy, reduced feeding, red discoloration..."
+            placeholder="E.g., white spots on shell, lethargy, reduced feeding, red discoloration, loose shell, white feces..."
             value={symptoms}
             onChange={(e) => setSymptoms(e.target.value)}
             rows={3}
@@ -196,7 +186,7 @@ Based on common shrimp and fish diseases, provide a diagnosis in this exact JSON
           {isAnalyzing ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Analyzing...
+              Analyzing with AI...
             </>
           ) : (
             <>
@@ -210,7 +200,7 @@ Based on common shrimp and fish diseases, provide a diagnosis in this exact JSON
         {result && (
           <div className="space-y-4 p-4 bg-muted rounded-lg">
             <div className="flex items-center justify-between">
-              <h4 className="font-bold text-lg">Likely Disease</h4>
+              <h4 className="font-bold text-lg">Diagnosis Result</h4>
               <Badge className={getSeverityColor(result.severity)}>
                 {result.severity.toUpperCase()} Severity
               </Badge>
