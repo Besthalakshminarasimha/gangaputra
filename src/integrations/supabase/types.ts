@@ -186,6 +186,39 @@ export type Database = {
         }
         Relationships: []
       }
+      diagnosis_history: {
+        Row: {
+          created_at: string
+          diagnoses: Json
+          id: string
+          image_url: string | null
+          notes: string | null
+          selected_diagnosis: string | null
+          symptoms: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnoses?: Json
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          selected_diagnosis?: string | null
+          symptoms?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnoses?: Json
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          selected_diagnosis?: string | null
+          symptoms?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       diseases: {
         Row: {
           category: Database["public"]["Enums"]["disease_category"]
