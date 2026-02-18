@@ -32,7 +32,7 @@ export const usePushNotifications = () => {
           setRegistration(reg);
           
           // Check if already subscribed
-          const subscription = await reg.pushManager.getSubscription();
+          const subscription = await (reg as any).pushManager.getSubscription();
           setState(prev => ({
             ...prev,
             isSubscribed: !!subscription,
@@ -94,7 +94,7 @@ export const usePushNotifications = () => {
         'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'
       );
       
-      const subscription = await registration.pushManager.subscribe({
+      const subscription = await (registration as any).pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidKey.buffer as ArrayBuffer,
       });
@@ -120,7 +120,7 @@ export const usePushNotifications = () => {
     if (!registration) return false;
 
     try {
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager.getSubscription();
       if (subscription) {
         await subscription.unsubscribe();
         setState(prev => ({ ...prev, isSubscribed: false }));
