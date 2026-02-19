@@ -258,6 +258,63 @@ export type Database = {
         }
         Relationships: []
       }
+      doctors: {
+        Row: {
+          available_hours: string | null
+          bio: string | null
+          consultation_fee: number | null
+          created_at: string
+          email: string | null
+          experience_years: number
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          languages: string[] | null
+          location: string
+          name: string
+          phone: string | null
+          qualification: string
+          specialization: string
+          updated_at: string
+        }
+        Insert: {
+          available_hours?: string | null
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string
+          email?: string | null
+          experience_years?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          languages?: string[] | null
+          location: string
+          name: string
+          phone?: string | null
+          qualification: string
+          specialization: string
+          updated_at?: string
+        }
+        Update: {
+          available_hours?: string | null
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string
+          email?: string | null
+          experience_years?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          languages?: string[] | null
+          location?: string
+          name?: string
+          phone?: string | null
+          qualification?: string
+          specialization?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       farms: {
         Row: {
           created_at: string

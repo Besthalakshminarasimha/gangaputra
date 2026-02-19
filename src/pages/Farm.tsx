@@ -24,6 +24,7 @@ import AIDiseasePredictor from "@/components/farm/AIDiseasePredictor";
 import SmartFeedCalculator from "@/components/calculators/SmartFeedCalculator";
 import ProfitLossLedger from "@/components/farm/ProfitLossLedger";
 import TraceabilityLog from "@/components/farm/TraceabilityLog";
+import DoctorDirectory from "@/components/farm/DoctorDirectory";
 
 const Farm = () => {
   const navigate = useNavigate();
@@ -146,6 +147,9 @@ const Farm = () => {
 
             {/* AI Disease Predictor */}
             <AIDiseasePredictor />
+
+            {/* Doctor Directory */}
+            <DoctorDirectory />
 
             {/* Location Search */}
             <Card>

@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Camera, AlertTriangle, Loader2, Brain, Stethoscope, Save, History, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
+import MedicineSuggestions from "./MedicineSuggestions";
+import DiagnosisPdfExport from "./DiagnosisPdfExport";
 
 interface Diagnosis {
   disease: string;
@@ -274,6 +276,15 @@ const AIDiseasePredictor = () => {
                   )}
                 </div>
               ))}
+              {/* Medicine Suggestions */}
+              <MedicineSuggestions diseases={results.map(r => r.disease)} />
+
+              {/* Export & Share */}
+              <div className="flex items-center justify-between">
+                <DiagnosisPdfExport diagnoses={results} symptoms={symptoms} />
+                <p className="text-xs text-muted-foreground">Export or share results</p>
+              </div>
+
               <div className="bg-yellow-500/10 p-3 rounded-lg flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
                 <p className="text-xs text-yellow-700">
