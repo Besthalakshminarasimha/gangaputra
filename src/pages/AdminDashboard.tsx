@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart, Fish, Pill } from "lucide-react";
+import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart, Fish, Pill, Stethoscope } from "lucide-react";
 import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
@@ -20,6 +20,7 @@ import AdminCarouselUpdates from "@/components/admin/AdminCarouselUpdates";
 import AdminCarouselAnalytics from "@/components/admin/AdminCarouselAnalytics";
 import AdminHatcheries from "@/components/admin/AdminHatcheries";
 import AdminMedicines from "@/components/admin/AdminMedicines";
+import AdminDoctors from "@/components/admin/AdminDoctors";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -158,6 +159,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Users</TabsTrigger>
             <TabsTrigger value="hatcheries"><Fish className="h-4 w-4 mr-1" />Hatcheries</TabsTrigger>
             <TabsTrigger value="medicines"><Pill className="h-4 w-4 mr-1" />Medicines</TabsTrigger>
+            <TabsTrigger value="doctors"><Stethoscope className="h-4 w-4 mr-1" />Doctors</TabsTrigger>
             <TabsTrigger value="diseases"><Bug className="h-4 w-4 mr-1" />Diseases</TabsTrigger>
             <TabsTrigger value="magazines"><BookOpen className="h-4 w-4 mr-1" />Magazines</TabsTrigger>
             <TabsTrigger value="manuals"><FileText className="h-4 w-4 mr-1" />Manuals</TabsTrigger>
@@ -174,6 +176,7 @@ const AdminDashboard = () => {
           <TabsContent value="users"><AdminUsersTable /></TabsContent>
           <TabsContent value="hatcheries"><AdminHatcheries /></TabsContent>
           <TabsContent value="medicines"><AdminMedicines /></TabsContent>
+          <TabsContent value="doctors"><AdminDoctors /></TabsContent>
           <TabsContent value="diseases"><AdminDiseases /></TabsContent>
           <TabsContent value="magazines"><AdminMagazines /></TabsContent>
           <TabsContent value="manuals"><AdminCropManuals /></TabsContent>
