@@ -100,6 +100,8 @@ const DoctorDirectory = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [minRating, setMinRating] = useState(0);
+  const [sortByRating, setSortByRating] = useState(true);
   // booking
   const [bookingDoc, setBookingDoc] = useState<Doctor | null>(null);
   const [date, setDate] = useState<Date | undefined>();
@@ -209,6 +211,20 @@ const DoctorDirectory = () => {
       data: { doctor_name: bookingDoc.name, date: format(date, "yyyy-MM-dd"), time: timeSlot },
     });
 
+    // SMS/WhatsApp notification to doctor
+    if (bookingDoc.phone) {
+      try {
+        await supabase.functions.invoke("send-sms-notification", {
+          body: {
+            to: bookingDoc.phone,
+            message: `🩺 New Appointment Request!\n\nA farmer has booked a consultation with you on ${format(date, "PPP")} at ${timeSlot}.\n${reason ? `Reason: ${reason}\n` : ""}Please check your dashboard to confirm. - GANGAPUTRA`,
+          },
+        });
+      } catch (smsErr) {
+        console.error("SMS to doctor failed:", smsErr);
+      }
+    }
+
     setSaving(false);
     toast({
       title: "Appointment Booked! 🎉",
@@ -255,11 +271,17 @@ const DoctorDirectory = () => {
     }
   };
 
-  const filtered = doctors.filter(d =>
-    d.name.toLowerCase().includes(search.toLowerCase()) ||
-    d.specialization.toLowerCase().includes(search.toLowerCase()) ||
-    d.location.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = doctors
+    .filter(d =>
+      (d.name.toLowerCase().includes(search.toLowerCase()) ||
+       d.specialization.toLowerCase().includes(search.toLowerCase()) ||
+       d.location.toLowerCase().includes(search.toLowerCase())) &&
+      (minRating === 0 || (avgRatings[d.id] ?? 0) >= minRating)
+    )
+    .sort((a, b) => {
+      if (!sortByRating) return 0;
+      return (avgRatings[b.id] ?? 0) - (avgRatings[a.id] ?? 0);
+    });
 
   const statusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     if (status === "confirmed") return "default";
@@ -295,6 +317,31 @@ const DoctorDirectory = () => {
               onChange={e => setSearch(e.target.value)}
               className="pl-9"
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-3 mt-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs whitespace-nowrap">Min Rating:</Label>
+              <Select value={String(minRating)} onValueChange={v => setMinRating(Number(v))}>
+                <SelectTrigger className="w-[100px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">All</SelectItem>
+                  <SelectItem value="3">3+ ⭐</SelectItem>
+                  <SelectItem value="4">4+ ⭐</SelectItem>
+                  <SelectItem value="4.5">4.5+ ⭐</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant={sortByRating ? "default" : "outline"}
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => setSortByRating(!sortByRating)}
+            >
+              <Star className="h-3 w-3 mr-1" />
+              {sortByRating ? "Sorted by Rating" : "Sort by Rating"}
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
