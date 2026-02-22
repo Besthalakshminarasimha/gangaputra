@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { format as formatDate } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Search, CalendarIcon, Clock, UserRound, CheckCircle, XCircle, RefreshCw } from "lucide-react";
-import { format } from "date-fns";
+
 
 interface AppointmentRow {
   id: string;
@@ -87,6 +88,25 @@ const AdminAppointments = () => {
     } else {
       toast({ title: `Appointment ${status}`, description: `Status updated to ${status}` });
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+
+      // Send email notification to farmer
+      const appt = appointments.find(a => a.id === id);
+      if (appt?.user_email && (status === "confirmed" || status === "cancelled")) {
+        try {
+          await supabase.functions.invoke("send-appointment-email", {
+            body: {
+              to_email: appt.user_email,
+              farmer_name: appt.user_name || "Farmer",
+              doctor_name: appt.doctor_name || "Doctor",
+              appointment_date: formatDate(new Date(appt.appointment_date), "dd MMM yyyy"),
+              appointment_time: appt.appointment_time,
+              status,
+            },
+          });
+        } catch (emailErr) {
+          console.error("Email notification failed:", emailErr);
+        }
+      }
     }
     setUpdating(null);
   };
@@ -173,7 +193,7 @@ const AdminAppointments = () => {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <CalendarIcon className="h-3.5 w-3.5" />
-                        {format(new Date(appt.appointment_date), "dd MMM yyyy")}
+                        {formatDate(new Date(appt.appointment_date), "dd MMM yyyy")}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
@@ -186,7 +206,7 @@ const AdminAppointments = () => {
                     )}
 
                     <p className="text-xs text-muted-foreground opacity-60">
-                      Booked {format(new Date(appt.created_at), "dd MMM yyyy 'at' hh:mm a")}
+                      Booked {formatDate(new Date(appt.created_at), "dd MMM yyyy 'at' hh:mm a")}
                     </p>
                   </div>
 
