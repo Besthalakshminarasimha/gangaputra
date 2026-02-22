@@ -191,6 +191,7 @@ const AIAssistant = () => {
             })),
             { role: "user", content: currentMessage },
           ],
+          language,
         }),
       });
 
