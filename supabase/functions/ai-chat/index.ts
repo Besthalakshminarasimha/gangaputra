@@ -11,14 +11,23 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, language } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Received chat request with", messages?.length, "messages");
+    const langInstructions: Record<string, string> = {
+      en: "Respond in English.",
+      te: "Respond ONLY in Telugu (తెలుగు). Use Telugu script for your entire response. Do not use English unless quoting a technical term.",
+      ta: "Respond ONLY in Tamil (தமிழ்). Use Tamil script for your entire response. Do not use English unless quoting a technical term.",
+      kn: "Respond ONLY in Kannada (ಕನ್ನಡ). Use Kannada script for your entire response. Do not use English unless quoting a technical term.",
+    };
+
+    const langNote = langInstructions[language] || langInstructions.en;
+
+    console.log("Received chat request with", messages?.length, "messages, language:", language);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -31,7 +40,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are an expert aqua farming assistant. Help users with farm management, water quality, fish health, feeding schedules, disease prevention, pond calculations, and product recommendations. Provide practical, actionable advice specific to aquaculture."
+            content: `You are an expert aqua farming assistant. Help users with farm management, water quality, fish health, feeding schedules, disease prevention, pond calculations, and product recommendations. Provide practical, actionable advice specific to aquaculture. ${langNote}`
           },
           ...messages,
         ],
