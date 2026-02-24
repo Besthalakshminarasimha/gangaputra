@@ -23,6 +23,7 @@ const Calculators = lazy(() => import("./pages/Calculators"));
 const Store = lazy(() => import("./pages/Store"));
 const Orders = lazy(() => import("./pages/Orders"));
 const PriceAlertsHistory = lazy(() => import("./pages/PriceAlertsHistory"));
+const Jobs = lazy(() => import("./pages/Jobs"));
 const AdminAuth = lazy(() => import("./pages/AdminAuth"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -47,6 +48,7 @@ const AnimatedRoutes = () => {
           <Route path="/store" element={<PageTransition><Store /></PageTransition>} />
           <Route path="/orders" element={<PageTransition><Orders /></PageTransition>} />
           <Route path="/price-alerts" element={<PageTransition><PriceAlertsHistory /></PageTransition>} />
+          <Route path="/jobs" element={<PageTransition><Jobs /></PageTransition>} />
           <Route path="/admin" element={<PageTransition><AdminAuth /></PageTransition>} />
           <Route path="/admin/dashboard" element={<PageTransition><AdminDashboard /></PageTransition>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

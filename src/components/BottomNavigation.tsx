@@ -1,4 +1,4 @@
-import { Home, Fish, BookOpen, Calculator, ShoppingBag } from "lucide-react";
+import { Home, Fish, BookOpen, Calculator, Briefcase } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -7,7 +7,7 @@ const navigationItems = [
   { id: "farm", icon: Fish, label: "Farm", path: "/farm" },
   { id: "aquapedia", icon: BookOpen, label: "Aquapedia", path: "/aquapedia" },
   { id: "calculators", icon: Calculator, label: "Calculators", path: "/calculators" },
-  { id: "store", icon: ShoppingBag, label: "Store", path: "/store" },
+  { id: "jobs", icon: Briefcase, label: "Jobs", path: "/jobs" },
 ];
 
 const BottomNavigation = () => {
