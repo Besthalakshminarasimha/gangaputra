@@ -488,6 +488,75 @@ export type Database = {
         }
         Relationships: []
       }
+      job_profiles: {
+        Row: {
+          age: number | null
+          availability: string
+          bio: string | null
+          created_at: string
+          district: string
+          education: string | null
+          email: string | null
+          expected_salary: string | null
+          experience_years: number
+          full_name: string
+          id: string
+          is_active: boolean | null
+          languages: string[] | null
+          location: string
+          phone: string
+          profile_image_url: string | null
+          skills: string[]
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          availability?: string
+          bio?: string | null
+          created_at?: string
+          district: string
+          education?: string | null
+          email?: string | null
+          expected_salary?: string | null
+          experience_years?: number
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          languages?: string[] | null
+          location: string
+          phone: string
+          profile_image_url?: string | null
+          skills?: string[]
+          state: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          availability?: string
+          bio?: string | null
+          created_at?: string
+          district?: string
+          education?: string | null
+          email?: string | null
+          expected_salary?: string | null
+          experience_years?: number
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          languages?: string[] | null
+          location?: string
+          phone?: string
+          profile_image_url?: string | null
+          skills?: string[]
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       magazines: {
         Row: {
           content: string | null
