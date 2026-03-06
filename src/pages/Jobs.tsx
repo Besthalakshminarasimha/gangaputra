@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Star, Search, User, Languages, Calendar } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
@@ -36,20 +37,22 @@ const Jobs = () => {
   const [filterSkill, setFilterSkill] = useState("all");
   const [filterState, setFilterState] = useState("all");
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form state
   const [form, setForm] = useState({
     full_name: "", phone: "", email: "", age: "",
     location: "", district: "", state: "",
     experience_years: "", skills: [] as string[],
     education: "", languages: [] as string[],
     expected_salary: "", availability: "full-time", bio: "",
+    profile_image_url: "",
   });
 
   const [newSkill, setNewSkill] = useState("");
   const [newLang, setNewLang] = useState("");
 
-  // Fetch all active job profiles
   const { data: profiles = [], isLoading } = useQuery({
     queryKey: ["job-profiles"],
     queryFn: async () => {
@@ -63,7 +66,6 @@ const Jobs = () => {
     },
   });
 
-  // Fetch current user's profile
   const { data: myProfile } = useQuery({
     queryKey: ["my-job-profile", user?.id],
     enabled: !!user,
@@ -90,11 +92,47 @@ const Jobs = () => {
           expected_salary: data.expected_salary || "",
           availability: data.availability || "full-time",
           bio: data.bio || "",
+          profile_image_url: data.profile_image_url || "",
         });
+        setPreviewUrl(data.profile_image_url || null);
       }
       return data;
     },
   });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const filePath = `${user.id}/profile.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("job-profiles")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error("Upload failed: " + uploadError.message);
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("job-profiles")
+      .getPublicUrl(filePath);
+
+    const publicUrl = urlData.publicUrl + "?t=" + Date.now();
+    setForm(f => ({ ...f, profile_image_url: publicUrl }));
+    setPreviewUrl(publicUrl);
+    toast.success("Photo uploaded!");
+    setUploading(false);
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -115,6 +153,7 @@ const Jobs = () => {
         expected_salary: form.expected_salary.trim() || null,
         availability: form.availability,
         bio: form.bio.trim() || null,
+        profile_image_url: form.profile_image_url || null,
       };
       if (!payload.full_name || !payload.phone || !payload.location || !payload.district || !payload.state) {
         throw new Error("Please fill all required fields");
@@ -146,7 +185,8 @@ const Jobs = () => {
       toast.success("Profile removed");
       queryClient.invalidateQueries({ queryKey: ["job-profiles"] });
       queryClient.invalidateQueries({ queryKey: ["my-job-profile"] });
-      setForm({ full_name: "", phone: "", email: "", age: "", location: "", district: "", state: "", experience_years: "", skills: [], education: "", languages: [], expected_salary: "", availability: "full-time", bio: "" });
+      setForm({ full_name: "", phone: "", email: "", age: "", location: "", district: "", state: "", experience_years: "", skills: [], education: "", languages: [], expected_salary: "", availability: "full-time", bio: "", profile_image_url: "" });
+      setPreviewUrl(null);
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -165,7 +205,6 @@ const Jobs = () => {
     setNewLang("");
   };
 
-  // Filter profiles
   const filtered = profiles.filter((p: any) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = !q || p.full_name?.toLowerCase().includes(q) || p.location?.toLowerCase().includes(q) || p.district?.toLowerCase().includes(q) || (p.skills || []).some((s: string) => s.toLowerCase().includes(q));
@@ -174,9 +213,10 @@ const Jobs = () => {
     return matchesSearch && matchesSkill && matchesState;
   });
 
+  const getInitials = (name: string) => name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4">
         <div className="flex items-center gap-3">
           <Link to="/dashboard"><ArrowLeft className="h-5 w-5" /></Link>
@@ -194,7 +234,6 @@ const Jobs = () => {
             <TabsTrigger value="apply">{myProfile ? "My Profile" : "Apply / Register"}</TabsTrigger>
           </TabsList>
 
-          {/* BROWSE TAB */}
           <TabsContent value="browse" className="space-y-4 mt-4">
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -228,28 +267,34 @@ const Jobs = () => {
                 {filtered.map((p: any) => (
                   <Card key={p.id} className="cursor-pointer" onClick={() => setSelectedProfile(p)}>
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold text-base flex items-center gap-2">
-                            <User className="h-4 w-4 text-primary" /> {p.full_name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                            <MapPin className="h-3 w-3" /> {p.district}, {p.state}
-                          </p>
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-12 w-12 shrink-0">
+                          <AvatarImage src={p.profile_image_url} alt={p.full_name} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">{getInitials(p.full_name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-base">{p.full_name}</h3>
+                              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <MapPin className="h-3 w-3" /> {p.district}, {p.state}
+                              </p>
+                            </div>
+                            <Badge variant="secondary" className="text-xs shrink-0">
+                              {p.experience_years}yr exp
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {(p.skills || []).slice(0, 4).map((s: string) => (
+                              <Badge key={s} variant="outline" className="text-xs">{s}</Badge>
+                            ))}
+                            {(p.skills || []).length > 4 && <Badge variant="outline" className="text-xs">+{p.skills.length - 4}</Badge>}
+                          </div>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {p.availability}</span>
+                            {p.expected_salary && <span className="flex items-center gap-1"><IndianRupee className="h-3 w-3" /> {p.expected_salary}</span>}
+                          </div>
                         </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {p.experience_years}yr exp
-                        </Badge>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {(p.skills || []).slice(0, 4).map((s: string) => (
-                          <Badge key={s} variant="outline" className="text-xs">{s}</Badge>
-                        ))}
-                        {(p.skills || []).length > 4 && <Badge variant="outline" className="text-xs">+{p.skills.length - 4}</Badge>}
-                      </div>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {p.availability}</span>
-                        {p.expected_salary && <span className="flex items-center gap-1"><IndianRupee className="h-3 w-3" /> {p.expected_salary}</span>}
                       </div>
                     </CardContent>
                   </Card>
@@ -258,7 +303,6 @@ const Jobs = () => {
             )}
           </TabsContent>
 
-          {/* APPLY TAB */}
           <TabsContent value="apply" className="space-y-4 mt-4">
             {!user ? (
               <Card>
@@ -274,6 +318,36 @@ const Jobs = () => {
                   <CardDescription>Fill in your details so employers can find you</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Profile Photo Upload */}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative">
+                      <Avatar className="h-24 w-24">
+                        <AvatarImage src={previewUrl || undefined} alt="Profile" />
+                        <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                          {form.full_name ? getInitials(form.full_name) : <User className="h-8 w-8" />}
+                        </AvatarFallback>
+                      </Avatar>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1.5 shadow-md hover:bg-primary/90 transition-colors"
+                        disabled={uploading}
+                      >
+                        <Camera className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {uploading ? "Uploading..." : "Tap camera icon to add photo"}
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2">
                       <Label>Full Name *</Label>
@@ -379,7 +453,7 @@ const Jobs = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="flex-1">
+                    <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || uploading} className="flex-1">
                       {saveMutation.isPending ? "Saving..." : myProfile ? "Update Profile" : "Submit Profile"}
                     </Button>
                     {myProfile && (
@@ -401,12 +475,18 @@ const Jobs = () => {
           {selectedProfile && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" /> {selectedProfile.full_name}
-                </DialogTitle>
-                <DialogDescription>
-                  {selectedProfile.availability} • {selectedProfile.experience_years} years experience
-                </DialogDescription>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={selectedProfile.profile_image_url} alt={selectedProfile.full_name} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">{getInitials(selectedProfile.full_name)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <DialogTitle>{selectedProfile.full_name}</DialogTitle>
+                    <DialogDescription>
+                      {selectedProfile.availability} • {selectedProfile.experience_years} years experience
+                    </DialogDescription>
+                  </div>
+                </div>
               </DialogHeader>
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> {selectedProfile.location}, {selectedProfile.district}, {selectedProfile.state}</div>
