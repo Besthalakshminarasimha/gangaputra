@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2, Eye, Search, MapPin, Phone, Mail, Briefcase } from "lucide-react";
+import { Trash2, Eye, Search, MapPin, Phone, Mail, Briefcase, BadgeCheck } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface JobProfile {
@@ -28,6 +28,7 @@ interface JobProfile {
   availability: string;
   bio: string | null;
   is_active: boolean | null;
+  is_verified: boolean | null;
   created_at: string;
 }
 
@@ -67,6 +68,20 @@ const AdminJobProfiles = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: currentState ? "Profile deactivated" : "Profile activated" });
+      fetchProfiles();
+    }
+  };
+
+  const toggleVerified = async (id: string, currentState: boolean | null) => {
+    const { error } = await supabase
+      .from("job_profiles")
+      .update({ is_verified: !currentState } as any)
+      .eq("id", id);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: currentState ? "Verification removed" : "Profile verified" });
       fetchProfiles();
     }
   };
@@ -119,6 +134,7 @@ const AdminJobProfiles = () => {
                 <TableHead>Skills</TableHead>
                 <TableHead>Experience</TableHead>
                 <TableHead>Active</TableHead>
+                <TableHead>Verified</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -138,6 +154,11 @@ const AdminJobProfiles = () => {
                   <TableCell>{p.experience_years} yrs</TableCell>
                   <TableCell>
                     <Switch checked={!!p.is_active} onCheckedChange={() => toggleActive(p.id, p.is_active)} />
+                  </TableCell>
+                  <TableCell>
+                    <Button size="sm" variant={p.is_verified ? "default" : "outline"} className="gap-1" onClick={() => toggleVerified(p.id, p.is_verified)}>
+                      <BadgeCheck className="h-4 w-4" /> {p.is_verified ? "Verified" : "Verify"}
+                    </Button>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">

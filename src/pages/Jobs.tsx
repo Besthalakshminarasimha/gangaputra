@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera, MessageCircle } from "lucide-react";
+import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera, MessageCircle, BadgeCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
@@ -275,7 +275,7 @@ const Jobs = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h3 className="font-semibold text-base">{p.full_name}</h3>
+                              <h3 className="font-semibold text-base flex items-center gap-1">{p.full_name}{p.is_verified && <BadgeCheck className="h-4 w-4 text-blue-500" />}</h3>
                               <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                                 <MapPin className="h-3 w-3" /> {p.district}, {p.state}
                               </p>
@@ -481,7 +481,7 @@ const Jobs = () => {
                     <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">{getInitials(selectedProfile.full_name)}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <DialogTitle>{selectedProfile.full_name}</DialogTitle>
+                    <DialogTitle className="flex items-center gap-1">{selectedProfile.full_name}{selectedProfile.is_verified && <BadgeCheck className="h-5 w-5 text-blue-500" />}</DialogTitle>
                     <DialogDescription>
                       {selectedProfile.availability} • {selectedProfile.experience_years} years experience
                     </DialogDescription>
@@ -516,7 +516,7 @@ const Jobs = () => {
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button className="flex-1" asChild><a href={`tel:${selectedProfile.phone}`}><Phone className="h-4 w-4 mr-1" /> Call</a></Button>
                   <Button variant="secondary" className="flex-1 bg-green-600 hover:bg-green-700 text-white" asChild>
-                    <a href={`https://wa.me/${selectedProfile.phone.replace(/[^0-9]/g, '').replace(/^0/, '91')}`} target="_blank" rel="noopener noreferrer">
+                    <a href={`https://wa.me/${selectedProfile.phone.replace(/[^0-9]/g, '').replace(/^0/, '91')}?text=${encodeURIComponent(`Hi ${selectedProfile.full_name}, I saw your profile on GANGAPUTRA and would like to discuss a job opportunity. Are you available?`)}`} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
                     </a>
                   </Button>
