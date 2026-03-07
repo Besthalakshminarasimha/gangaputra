@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera } from "lucide-react";
+import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
@@ -513,8 +513,13 @@ const Jobs = () => {
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-3 w-3" /> Registered {format(new Date(selectedProfile.created_at), "dd MMM yyyy")}
                 </div>
-                <div className="flex gap-2 pt-2">
+                <div className="flex flex-wrap gap-2 pt-2">
                   <Button className="flex-1" asChild><a href={`tel:${selectedProfile.phone}`}><Phone className="h-4 w-4 mr-1" /> Call</a></Button>
+                  <Button variant="secondary" className="flex-1 bg-green-600 hover:bg-green-700 text-white" asChild>
+                    <a href={`https://wa.me/${selectedProfile.phone.replace(/[^0-9]/g, '').replace(/^0/, '91')}`} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
+                    </a>
+                  </Button>
                   {selectedProfile.email && <Button variant="outline" className="flex-1" asChild><a href={`mailto:${selectedProfile.email}`}><Mail className="h-4 w-4 mr-1" /> Email</a></Button>}
                 </div>
               </div>
