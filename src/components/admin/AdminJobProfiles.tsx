@@ -134,6 +134,7 @@ const AdminJobProfiles = () => {
                 <TableHead>Skills</TableHead>
                 <TableHead>Experience</TableHead>
                 <TableHead>Active</TableHead>
+                <TableHead>Verified</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -153,6 +154,11 @@ const AdminJobProfiles = () => {
                   <TableCell>{p.experience_years} yrs</TableCell>
                   <TableCell>
                     <Switch checked={!!p.is_active} onCheckedChange={() => toggleActive(p.id, p.is_active)} />
+                  </TableCell>
+                  <TableCell>
+                    <Button size="sm" variant={p.is_verified ? "default" : "outline"} className="gap-1" onClick={() => toggleVerified(p.id, p.is_verified)}>
+                      <BadgeCheck className="h-4 w-4" /> {p.is_verified ? "Verified" : "Verify"}
+                    </Button>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
