@@ -72,6 +72,20 @@ const AdminJobProfiles = () => {
     }
   };
 
+  const toggleVerified = async (id: string, currentState: boolean | null) => {
+    const { error } = await supabase
+      .from("job_profiles")
+      .update({ is_verified: !currentState } as any)
+      .eq("id", id);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: currentState ? "Verification removed" : "Profile verified" });
+      fetchProfiles();
+    }
+  };
+
   const deleteProfile = async (id: string) => {
     if (!confirm("Are you sure you want to delete this job profile?")) return;
     const { error } = await supabase.from("job_profiles").delete().eq("id", id);
