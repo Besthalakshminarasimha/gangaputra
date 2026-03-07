@@ -502,6 +502,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean | null
+          is_verified: boolean | null
           languages: string[] | null
           location: string
           phone: string
@@ -524,6 +525,7 @@ export type Database = {
           full_name: string
           id?: string
           is_active?: boolean | null
+          is_verified?: boolean | null
           languages?: string[] | null
           location: string
           phone: string
@@ -546,6 +548,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean | null
+          is_verified?: boolean | null
           languages?: string[] | null
           location?: string
           phone?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.job_profiles ADD COLUMN is_verified boolean DEFAULT false;
