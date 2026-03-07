@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2, Eye, Search, MapPin, Phone, Mail, Briefcase } from "lucide-react";
+import { Trash2, Eye, Search, MapPin, Phone, Mail, Briefcase, BadgeCheck } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface JobProfile {
@@ -28,6 +28,7 @@ interface JobProfile {
   availability: string;
   bio: string | null;
   is_active: boolean | null;
+  is_verified: boolean | null;
   created_at: string;
 }
 
