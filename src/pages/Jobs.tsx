@@ -66,6 +66,17 @@ const Jobs = () => {
     },
   });
 
+  const { data: endorsements = [], refetch: refetchEndorsements } = useQuery({
+    queryKey: ["skill-endorsements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("skill_endorsements")
+        .select("*");
+      if (error) throw error;
+      return data as { id: string; job_profile_id: string; skill: string; endorser_id: string }[];
+    },
+  });
+
   const { data: myProfile } = useQuery({
     queryKey: ["my-job-profile", user?.id],
     enabled: !!user,
