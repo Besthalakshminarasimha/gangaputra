@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera, MessageCircle, BadgeCheck } from "lucide-react";
+import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera, MessageCircle, BadgeCheck, ThumbsUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
