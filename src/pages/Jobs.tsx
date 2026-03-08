@@ -528,9 +528,28 @@ const Jobs = () => {
                 )}
                 <div>
                   <p className="font-medium mb-1">Skills</p>
-                  <div className="flex flex-wrap gap-1">
-                    {(selectedProfile.skills || []).map((s: string) => <Badge key={s} variant="outline">{s}</Badge>)}
+                  <div className="flex flex-wrap gap-2">
+                    {(selectedProfile.skills || []).map((s: string) => {
+                      const count = getEndorsementCount(selectedProfile.id, s);
+                      const endorsed = hasEndorsed(selectedProfile.id, s);
+                      return (
+                        <button
+                          key={s}
+                          onClick={() => toggleEndorsement(selectedProfile.id, s)}
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                            endorsed
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-background text-foreground hover:bg-muted"
+                          }`}
+                        >
+                          <ThumbsUp className={`h-3 w-3 ${endorsed ? "fill-primary" : ""}`} />
+                          {s}
+                          {count > 0 && <span className="ml-0.5 text-muted-foreground">({count})</span>}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {user && <p className="text-xs text-muted-foreground mt-1">Tap a skill to endorse</p>}
                 </div>
                 {selectedProfile.bio && (
                   <div>
