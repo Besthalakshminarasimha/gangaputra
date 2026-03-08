@@ -224,6 +224,23 @@ const Jobs = () => {
     return matchesSearch && matchesSkill && matchesState;
   });
 
+  const getEndorsementCount = (profileId: string, skill: string) =>
+    endorsements.filter(e => e.job_profile_id === profileId && e.skill === skill).length;
+
+  const hasEndorsed = (profileId: string, skill: string) =>
+    user ? endorsements.some(e => e.job_profile_id === profileId && e.skill === skill && e.endorser_id === user.id) : false;
+
+  const toggleEndorsement = async (profileId: string, skill: string) => {
+    if (!user) { toast.error("Please login to endorse skills"); return; }
+    const existing = endorsements.find(e => e.job_profile_id === profileId && e.skill === skill && e.endorser_id === user.id);
+    if (existing) {
+      await supabase.from("skill_endorsements").delete().eq("id", existing.id);
+    } else {
+      await supabase.from("skill_endorsements").insert({ job_profile_id: profileId, skill, endorser_id: user.id });
+    }
+    refetchEndorsements();
+  };
+
   const getInitials = (name: string) => name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
