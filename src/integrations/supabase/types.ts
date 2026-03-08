@@ -488,6 +488,102 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          applicant_id: string
+          created_at: string
+          id: string
+          job_posting_id: string
+          job_profile_id: string | null
+          message: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applicant_id: string
+          created_at?: string
+          id?: string
+          job_posting_id: string
+          job_profile_id?: string | null
+          message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applicant_id?: string
+          created_at?: string
+          id?: string
+          job_posting_id?: string
+          job_profile_id?: string | null
+          message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_posting_id_fkey"
+            columns: ["job_posting_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_job_profile_id_fkey"
+            columns: ["job_profile_id"]
+            isOneToOne: false
+            referencedRelation: "job_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_postings: {
+        Row: {
+          created_at: string
+          description: string | null
+          district: string
+          employer_id: string
+          id: string
+          is_active: boolean | null
+          job_type: string
+          location: string
+          salary_range: string | null
+          skills_required: string[]
+          state: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          district: string
+          employer_id: string
+          id?: string
+          is_active?: boolean | null
+          job_type?: string
+          location: string
+          salary_range?: string | null
+          skills_required?: string[]
+          state: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          district?: string
+          employer_id?: string
+          id?: string
+          is_active?: boolean | null
+          job_type?: string
+          location?: string
+          salary_range?: string | null
+          skills_required?: string[]
+          state?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_profiles: {
         Row: {
           age: number | null
@@ -644,6 +740,33 @@ export type Database = {
           price?: number | null
           updated_at?: string
           uses?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string
+          sender_id?: string
         }
         Relationships: []
       }
