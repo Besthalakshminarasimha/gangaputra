@@ -1103,6 +1103,38 @@ export type Database = {
         }
         Relationships: []
       }
+      skill_endorsements: {
+        Row: {
+          created_at: string
+          endorser_id: string
+          id: string
+          job_profile_id: string
+          skill: string
+        }
+        Insert: {
+          created_at?: string
+          endorser_id: string
+          id?: string
+          job_profile_id: string
+          skill: string
+        }
+        Update: {
+          created_at?: string
+          endorser_id?: string
+          id?: string
+          job_profile_id?: string
+          skill?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_endorsements_job_profile_id_fkey"
+            columns: ["job_profile_id"]
+            isOneToOne: false
+            referencedRelation: "job_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_bookmarks: {
         Row: {
           content_id: string

@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera, MessageCircle, BadgeCheck } from "lucide-react";
+import { ArrowLeft, Briefcase, MapPin, Phone, Mail, GraduationCap, Clock, IndianRupee, Search, User, Languages, Calendar, Camera, MessageCircle, BadgeCheck, ThumbsUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
@@ -63,6 +63,17 @@ const Jobs = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: endorsements = [], refetch: refetchEndorsements } = useQuery({
+    queryKey: ["skill-endorsements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("skill_endorsements")
+        .select("*");
+      if (error) throw error;
+      return data as { id: string; job_profile_id: string; skill: string; endorser_id: string }[];
     },
   });
 
@@ -212,6 +223,23 @@ const Jobs = () => {
     const matchesState = filterState === "all" || p.state === filterState;
     return matchesSearch && matchesSkill && matchesState;
   });
+
+  const getEndorsementCount = (profileId: string, skill: string) =>
+    endorsements.filter(e => e.job_profile_id === profileId && e.skill === skill).length;
+
+  const hasEndorsed = (profileId: string, skill: string) =>
+    user ? endorsements.some(e => e.job_profile_id === profileId && e.skill === skill && e.endorser_id === user.id) : false;
+
+  const toggleEndorsement = async (profileId: string, skill: string) => {
+    if (!user) { toast.error("Please login to endorse skills"); return; }
+    const existing = endorsements.find(e => e.job_profile_id === profileId && e.skill === skill && e.endorser_id === user.id);
+    if (existing) {
+      await supabase.from("skill_endorsements").delete().eq("id", existing.id);
+    } else {
+      await supabase.from("skill_endorsements").insert({ job_profile_id: profileId, skill, endorser_id: user.id });
+    }
+    refetchEndorsements();
+  };
 
   const getInitials = (name: string) => name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
 
@@ -500,9 +528,28 @@ const Jobs = () => {
                 )}
                 <div>
                   <p className="font-medium mb-1">Skills</p>
-                  <div className="flex flex-wrap gap-1">
-                    {(selectedProfile.skills || []).map((s: string) => <Badge key={s} variant="outline">{s}</Badge>)}
+                  <div className="flex flex-wrap gap-2">
+                    {(selectedProfile.skills || []).map((s: string) => {
+                      const count = getEndorsementCount(selectedProfile.id, s);
+                      const endorsed = hasEndorsed(selectedProfile.id, s);
+                      return (
+                        <button
+                          key={s}
+                          onClick={() => toggleEndorsement(selectedProfile.id, s)}
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                            endorsed
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-background text-foreground hover:bg-muted"
+                          }`}
+                        >
+                          <ThumbsUp className={`h-3 w-3 ${endorsed ? "fill-primary" : ""}`} />
+                          {s}
+                          {count > 0 && <span className="ml-0.5 text-muted-foreground">({count})</span>}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {user && <p className="text-xs text-muted-foreground mt-1">Tap a skill to endorse</p>}
                 </div>
                 {selectedProfile.bio && (
                   <div>
