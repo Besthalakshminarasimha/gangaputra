@@ -22,6 +22,7 @@ import InAppChat from "@/components/jobs/InAppChat";
 import ChatList from "@/components/jobs/ChatList";
 import EndorsementLeaderboard from "@/components/jobs/EndorsementLeaderboard";
 import ResumeExport from "@/components/jobs/ResumeExport";
+import ApplicationTracker from "@/components/jobs/ApplicationTracker";
 
 const SKILL_OPTIONS = [
   "Pond Management", "Water Quality Testing", "Feed Management", "Disease Diagnosis",
@@ -296,6 +297,7 @@ const Jobs = () => {
           {/* Job Postings Tab */}
           <TabsContent value="jobs" className="space-y-4 mt-4">
             {user && <JobPostingForm userId={user.id} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["job-postings"] })} />}
+            {user && <ApplicationTracker userId={user.id} />}
             <JobPostingsList userId={user?.id} jobProfileId={myProfile?.id} />
           </TabsContent>
 
