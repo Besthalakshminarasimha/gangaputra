@@ -9,6 +9,7 @@ const navigationItems = [
   { id: "aquapedia", icon: BookOpen, label: "Aquapedia", path: "/aquapedia" },
   { id: "calculators", icon: Calculator, label: "Calc", path: "/calculators" },
   { id: "jobs", icon: Briefcase, label: "Jobs", path: "/jobs" },
+  { id: "ai-agents", icon: Bot, label: "AI Agents", path: "/ai-agents" },
 ];
 
 const BottomNavigation = () => {

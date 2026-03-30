@@ -297,6 +297,7 @@ const Jobs = () => {
           {/* Job Postings Tab */}
           <TabsContent value="jobs" className="space-y-4 mt-4">
             {user && <JobPostingForm userId={user.id} onSuccess={() => queryClient.invalidateQueries({ queryKey: ["job-postings"] })} />}
+            {user && <ApplicationTracker userId={user.id} />}
             <JobPostingsList userId={user?.id} jobProfileId={myProfile?.id} />
           </TabsContent>
 
