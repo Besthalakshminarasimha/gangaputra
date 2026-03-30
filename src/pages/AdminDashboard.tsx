@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart, Fish, Pill, Stethoscope, CalendarCheck, Briefcase } from "lucide-react";
+import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart, Fish, Pill, Stethoscope, CalendarCheck, Briefcase, ClipboardList } from "lucide-react";
 import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
