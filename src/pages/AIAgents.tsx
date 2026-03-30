@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import ReactMarkdown from "react-markdown";
+
 
 const AGENTS = [
   {
@@ -177,8 +177,8 @@ const AIAgents = () => {
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
                   {m.role === "assistant" ? (
-                    <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>ul]:mb-2">
-                      <ReactMarkdown>{m.content}</ReactMarkdown>
+                    <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
+                      {m.content}
                     </div>
                   ) : m.content}
                 </div>
