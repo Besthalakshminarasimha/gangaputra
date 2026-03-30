@@ -22,6 +22,7 @@ import InAppChat from "@/components/jobs/InAppChat";
 import ChatList from "@/components/jobs/ChatList";
 import EndorsementLeaderboard from "@/components/jobs/EndorsementLeaderboard";
 import ResumeExport from "@/components/jobs/ResumeExport";
+import ApplicationTracker from "@/components/jobs/ApplicationTracker";
 
 const SKILL_OPTIONS = [
   "Pond Management", "Water Quality Testing", "Feed Management", "Disease Diagnosis",
