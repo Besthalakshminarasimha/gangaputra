@@ -23,6 +23,7 @@ import AdminMedicines from "@/components/admin/AdminMedicines";
 import AdminDoctors from "@/components/admin/AdminDoctors";
 import AdminAppointments from "@/components/admin/AdminAppointments";
 import AdminJobProfiles from "@/components/admin/AdminJobProfiles";
+import AdminJobPostings from "@/components/admin/AdminJobPostings";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
