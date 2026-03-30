@@ -25,6 +25,7 @@ const Store = lazy(() => import("./pages/Store"));
 const Orders = lazy(() => import("./pages/Orders"));
 const PriceAlertsHistory = lazy(() => import("./pages/PriceAlertsHistory"));
 const Jobs = lazy(() => import("./pages/Jobs"));
+const AIAgents = lazy(() => import("./pages/AIAgents"));
 const AdminAuth = lazy(() => import("./pages/AdminAuth"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
