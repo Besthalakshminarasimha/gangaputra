@@ -165,6 +165,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="doctors"><Stethoscope className="h-4 w-4 mr-1" />Doctors</TabsTrigger>
             <TabsTrigger value="appointments"><CalendarCheck className="h-4 w-4 mr-1" />Appointments</TabsTrigger>
             <TabsTrigger value="job-profiles"><Briefcase className="h-4 w-4 mr-1" />Jobs</TabsTrigger>
+            <TabsTrigger value="job-postings"><ClipboardList className="h-4 w-4 mr-1" />Job Posts</TabsTrigger>
             <TabsTrigger value="diseases"><Bug className="h-4 w-4 mr-1" />Diseases</TabsTrigger>
             <TabsTrigger value="magazines"><BookOpen className="h-4 w-4 mr-1" />Magazines</TabsTrigger>
             <TabsTrigger value="manuals"><FileText className="h-4 w-4 mr-1" />Manuals</TabsTrigger>
