@@ -143,6 +143,9 @@ const Farm = () => {
           </TabsList>
 
           <TabsContent value="tools" className="mt-4 space-y-6">
+            {/* Weather Forecast & Pond Advisory */}
+            <WeatherForecast />
+
             {/* Water Parameters & IoT */}
             <WaterParametersForm />
 
