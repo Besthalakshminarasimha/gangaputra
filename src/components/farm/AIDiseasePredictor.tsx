@@ -31,12 +31,21 @@ interface DiagnosisRecord {
   created_at: string;
 }
 
+const LANGUAGES = [
+  { code: "english", label: "English", flag: "🇬🇧" },
+  { code: "telugu", label: "తెలుగు", flag: "🇮🇳" },
+  { code: "tamil", label: "தமிழ்", flag: "🇮🇳" },
+  { code: "kannada", label: "ಕನ್ನಡ", flag: "🇮🇳" },
+];
+
 const AIDiseasePredictor = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [symptoms, setSymptoms] = useState("");
+  const [selectedLang, setSelectedLang] = useState("english");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [results, setResults] = useState<Diagnosis[]>([]);
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
