@@ -154,7 +154,7 @@ const AIDiseasePredictor = () => {
     }
   };
 
-
+  const saveDiagnosis = async () => {
     if (!user) {
       toast({ title: "Login Required", description: "Please log in to save diagnosis results", variant: "destructive" });
       return;
