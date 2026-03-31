@@ -130,7 +130,31 @@ const AIDiseasePredictor = () => {
     }
   };
 
-  const saveDiagnosis = async () => {
+  const switchLanguage = async (lang: string) => {
+    if (lang === selectedLang) return;
+    setSelectedLang(lang);
+    
+    // If we have results, re-analyze in the new language
+    if (results.length > 0 && (imageBase64 || symptoms.trim())) {
+      setIsTranslating(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('ai-disease-predict', {
+          body: { symptoms: symptoms.trim() || null, imageBase64: imageBase64 || null, language: lang }
+        });
+        if (error) throw error;
+        if (data?.diagnoses) {
+          setResults(data.diagnoses);
+          toast({ title: "Language Changed", description: `Results translated to ${LANGUAGES.find(l => l.code === lang)?.label}` });
+        }
+      } catch {
+        toast({ title: "Translation Failed", description: "Could not translate results", variant: "destructive" });
+      } finally {
+        setIsTranslating(false);
+      }
+    }
+  };
+
+
     if (!user) {
       toast({ title: "Login Required", description: "Please log in to save diagnosis results", variant: "destructive" });
       return;
