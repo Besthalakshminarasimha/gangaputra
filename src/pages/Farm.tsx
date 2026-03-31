@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import WaterParametersForm from "@/components/farm/WaterParametersForm";
 import AIDiseasePredictor from "@/components/farm/AIDiseasePredictor";
+import WeatherForecast from "@/components/farm/WeatherForecast";
 import SmartFeedCalculator from "@/components/calculators/SmartFeedCalculator";
 import ProfitLossLedger from "@/components/farm/ProfitLossLedger";
 import TraceabilityLog from "@/components/farm/TraceabilityLog";
@@ -142,6 +143,9 @@ const Farm = () => {
           </TabsList>
 
           <TabsContent value="tools" className="mt-4 space-y-6">
+            {/* Weather Forecast & Pond Advisory */}
+            <WeatherForecast />
+
             {/* Water Parameters & IoT */}
             <WaterParametersForm />
 
