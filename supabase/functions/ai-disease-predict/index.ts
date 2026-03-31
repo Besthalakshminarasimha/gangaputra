@@ -11,7 +11,8 @@ serve(async (req) => {
   }
 
   try {
-    const { symptoms, imageBase64 } = await req.json();
+    const { symptoms, imageBase64, language } = await req.json();
+    const lang = language || "english";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -19,6 +20,10 @@ serve(async (req) => {
     }
 
     console.log("Disease prediction request - symptoms:", symptoms ? "yes" : "no", "image:", imageBase64 ? "yes" : "no");
+
+    const langInstruction = lang !== "english"
+      ? `\n\nIMPORTANT: You MUST write ALL text values (disease names, treatment, prevention) in ${lang} language. The JSON keys must remain in English, but ALL values must be in ${lang}. For example if language is Telugu, write treatment in Telugu script.`
+      : "";
 
     const systemPrompt = `You are an expert aquaculture veterinarian and disease diagnostician with 20+ years of experience in shrimp and fish diseases. Your task is to analyze symptoms and/or images to identify the top 3 most likely diseases (differential diagnoses) in aquaculture species.
 
@@ -59,7 +64,7 @@ Guidelines:
 - If symptoms are vague, give lower confidence and consider broader differentials
 - Always recommend consulting a vet in treatment
 - Be specific about medications, dosages, and water parameters in treatment
-- Include biosecurity measures in prevention`;
+- Include biosecurity measures in prevention${langInstruction}`;
 
     // Build user message content
     const userContent: any[] = [];

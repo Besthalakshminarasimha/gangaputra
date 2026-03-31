@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Camera, AlertTriangle, Loader2, Brain, Stethoscope, Save, History, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { Camera, AlertTriangle, Loader2, Brain, Stethoscope, Save, History, Trash2, ChevronDown, ChevronUp, Globe } from "lucide-react";
 import { format } from "date-fns";
 import MedicineSuggestions from "./MedicineSuggestions";
 import DiagnosisPdfExport from "./DiagnosisPdfExport";
@@ -31,12 +31,21 @@ interface DiagnosisRecord {
   created_at: string;
 }
 
+const LANGUAGES = [
+  { code: "english", label: "English", flag: "🇬🇧" },
+  { code: "telugu", label: "తెలుగు", flag: "🇮🇳" },
+  { code: "tamil", label: "தமிழ்", flag: "🇮🇳" },
+  { code: "kannada", label: "ಕನ್ನಡ", flag: "🇮🇳" },
+];
+
 const AIDiseasePredictor = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [symptoms, setSymptoms] = useState("");
+  const [selectedLang, setSelectedLang] = useState("english");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [results, setResults] = useState<Diagnosis[]>([]);
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
@@ -101,7 +110,7 @@ const AIDiseasePredictor = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-disease-predict', {
-        body: { symptoms: symptoms.trim() || null, imageBase64: imageBase64 || null }
+        body: { symptoms: symptoms.trim() || null, imageBase64: imageBase64 || null, language: selectedLang }
       });
 
       if (error) throw error;
@@ -118,6 +127,30 @@ const AIDiseasePredictor = () => {
       toast({ title: "Analysis Failed", description: "Could not complete the analysis. Please try again.", variant: "destructive" });
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const switchLanguage = async (lang: string) => {
+    if (lang === selectedLang) return;
+    setSelectedLang(lang);
+    
+    // If we have results, re-analyze in the new language
+    if (results.length > 0 && (imageBase64 || symptoms.trim())) {
+      setIsTranslating(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('ai-disease-predict', {
+          body: { symptoms: symptoms.trim() || null, imageBase64: imageBase64 || null, language: lang }
+        });
+        if (error) throw error;
+        if (data?.diagnoses) {
+          setResults(data.diagnoses);
+          toast({ title: "Language Changed", description: `Results translated to ${LANGUAGES.find(l => l.code === lang)?.label}` });
+        }
+      } catch {
+        toast({ title: "Translation Failed", description: "Could not translate results", variant: "destructive" });
+      } finally {
+        setIsTranslating(false);
+      }
     }
   };
 
@@ -207,6 +240,32 @@ const AIDiseasePredictor = () => {
                 </label>
               )}
             </div>
+          </div>
+
+          {/* Language Selection */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              <Globe className="h-4 w-4" />
+              Results Language
+            </Label>
+            <div className="flex gap-2 flex-wrap">
+              {LANGUAGES.map((lang) => (
+                <Button
+                  key={lang.code}
+                  variant={selectedLang === lang.code ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => switchLanguage(lang.code)}
+                  disabled={isTranslating || isAnalyzing}
+                >
+                  {lang.flag} {lang.label}
+                </Button>
+              ))}
+            </div>
+            {isTranslating && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Translating results...
+              </p>
+            )}
           </div>
 
           {/* Symptoms Input */}
