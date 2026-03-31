@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import WaterParametersForm from "@/components/farm/WaterParametersForm";
 import AIDiseasePredictor from "@/components/farm/AIDiseasePredictor";
+import WeatherForecast from "@/components/farm/WeatherForecast";
 import SmartFeedCalculator from "@/components/calculators/SmartFeedCalculator";
 import ProfitLossLedger from "@/components/farm/ProfitLossLedger";
 import TraceabilityLog from "@/components/farm/TraceabilityLog";
