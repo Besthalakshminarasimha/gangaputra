@@ -242,6 +242,32 @@ const AIDiseasePredictor = () => {
             </div>
           </div>
 
+          {/* Language Selection */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              <Globe className="h-4 w-4" />
+              Results Language
+            </Label>
+            <div className="flex gap-2 flex-wrap">
+              {LANGUAGES.map((lang) => (
+                <Button
+                  key={lang.code}
+                  variant={selectedLang === lang.code ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => switchLanguage(lang.code)}
+                  disabled={isTranslating || isAnalyzing}
+                >
+                  {lang.flag} {lang.label}
+                </Button>
+              ))}
+            </div>
+            {isTranslating && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Translating results...
+              </p>
+            )}
+          </div>
+
           {/* Symptoms Input */}
           <div className="space-y-2">
             <Label htmlFor="symptoms">Describe Symptoms</Label>
