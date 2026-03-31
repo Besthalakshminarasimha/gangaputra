@@ -110,7 +110,7 @@ const AIDiseasePredictor = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-disease-predict', {
-        body: { symptoms: symptoms.trim() || null, imageBase64: imageBase64 || null }
+        body: { symptoms: symptoms.trim() || null, imageBase64: imageBase64 || null, language: selectedLang }
       });
 
       if (error) throw error;
