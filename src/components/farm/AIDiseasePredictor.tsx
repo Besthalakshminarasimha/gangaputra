@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Camera, AlertTriangle, Loader2, Brain, Stethoscope, Save, History, Trash2, ChevronDown, ChevronUp, Globe } from "lucide-react";
+import { Camera, AlertTriangle, Loader2, Brain, Stethoscope, Save, History, Trash2, ChevronDown, ChevronUp, Globe, Volume2, VolumeX } from "lucide-react";
 import { format } from "date-fns";
 import MedicineSuggestions from "./MedicineSuggestions";
 import DiagnosisPdfExport from "./DiagnosisPdfExport";
@@ -32,10 +32,11 @@ interface DiagnosisRecord {
 }
 
 const LANGUAGES = [
-  { code: "english", label: "English", flag: "🇬🇧" },
-  { code: "telugu", label: "తెలుగు", flag: "🇮🇳" },
-  { code: "tamil", label: "தமிழ்", flag: "🇮🇳" },
-  { code: "kannada", label: "ಕನ್ನಡ", flag: "🇮🇳" },
+  { code: "english", label: "English", flag: "🇬🇧", ttsCode: "en" },
+  { code: "hindi", label: "हिन्दी", flag: "🇮🇳", ttsCode: "hi" },
+  { code: "telugu", label: "తెలుగు", flag: "🇮🇳", ttsCode: "te" },
+  { code: "tamil", label: "தமிழ்", flag: "🇮🇳", ttsCode: "ta" },
+  { code: "kannada", label: "ಕನ್ನಡ", flag: "🇮🇳", ttsCode: "kn" },
 ];
 
 const AIDiseasePredictor = () => {
@@ -52,6 +53,8 @@ const AIDiseasePredictor = () => {
   const [history, setHistory] = useState<DiagnosisRecord[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -188,6 +191,42 @@ const AIDiseasePredictor = () => {
       toast({ title: "Deleted", description: "Record removed from history" });
     } catch (err) {
       console.error('Delete error:', err);
+    }
+  };
+
+  const speakResults = async () => {
+    if (results.length === 0) return;
+    if (isSpeaking && currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setIsSpeaking(false);
+      setCurrentAudio(null);
+      return;
+    }
+
+    const ttsLang = LANGUAGES.find(l => l.code === selectedLang)?.ttsCode || "en";
+    const text = results.map((r, i) => 
+      `${i + 1}. ${r.disease}. Confidence ${r.confidence} percent. Severity ${r.severity}. Treatment: ${r.treatment}. Prevention: ${r.prevention}.`
+    ).join(" ");
+
+    setIsSpeaking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text: text.slice(0, 4000), language: ttsLang }
+      });
+      if (error) throw error;
+      if (data?.audioContent) {
+        const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+        const audio = new Audio(audioUrl);
+        audio.onended = () => { setIsSpeaking(false); setCurrentAudio(null); };
+        audio.onerror = () => { setIsSpeaking(false); setCurrentAudio(null); };
+        setCurrentAudio(audio);
+        audio.play();
+      }
+    } catch (err) {
+      console.error('TTS error:', err);
+      toast({ title: "Voice Error", description: "Could not play audio. Please try again.", variant: "destructive" });
+      setIsSpeaking(false);
     }
   };
 
@@ -335,6 +374,19 @@ const AIDiseasePredictor = () => {
                   )}
                 </div>
               ))}
+              {/* Voice Readout */}
+              <Button
+                variant={isSpeaking ? "destructive" : "outline"}
+                onClick={speakResults}
+                className="w-full"
+              >
+                {isSpeaking ? (
+                  <><VolumeX className="h-4 w-4 mr-2" />Stop Reading</>
+                ) : (
+                  <><Volume2 className="h-4 w-4 mr-2" />🔊 Read Aloud in {LANGUAGES.find(l => l.code === selectedLang)?.label}</>
+                )}
+              </Button>
+
               {/* Medicine Suggestions */}
               <MedicineSuggestions diseases={results.map(r => r.disease)} />
 
