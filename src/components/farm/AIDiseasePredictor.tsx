@@ -194,6 +194,42 @@ const AIDiseasePredictor = () => {
     }
   };
 
+  const speakResults = async () => {
+    if (results.length === 0) return;
+    if (isSpeaking && currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setIsSpeaking(false);
+      setCurrentAudio(null);
+      return;
+    }
+
+    const ttsLang = LANGUAGES.find(l => l.code === selectedLang)?.ttsCode || "en";
+    const text = results.map((r, i) => 
+      `${i + 1}. ${r.disease}. Confidence ${r.confidence} percent. Severity ${r.severity}. Treatment: ${r.treatment}. Prevention: ${r.prevention}.`
+    ).join(" ");
+
+    setIsSpeaking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text: text.slice(0, 4000), language: ttsLang }
+      });
+      if (error) throw error;
+      if (data?.audioContent) {
+        const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+        const audio = new Audio(audioUrl);
+        audio.onended = () => { setIsSpeaking(false); setCurrentAudio(null); };
+        audio.onerror = () => { setIsSpeaking(false); setCurrentAudio(null); };
+        setCurrentAudio(audio);
+        audio.play();
+      }
+    } catch (err) {
+      console.error('TTS error:', err);
+      toast({ title: "Voice Error", description: "Could not play audio. Please try again.", variant: "destructive" });
+      setIsSpeaking(false);
+    }
+  };
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'low': return 'bg-green-500';
