@@ -53,6 +53,8 @@ const AIDiseasePredictor = () => {
   const [history, setHistory] = useState<DiagnosisRecord[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
