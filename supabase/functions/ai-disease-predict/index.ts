@@ -13,6 +13,8 @@ serve(async (req) => {
   try {
     const { symptoms, imageBase64, language } = await req.json();
     const lang = language || "english";
+    const validLangs = ["english", "hindi", "telugu", "tamil", "kannada"];
+    const safeLang = validLangs.includes(lang) ? lang : "english";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
