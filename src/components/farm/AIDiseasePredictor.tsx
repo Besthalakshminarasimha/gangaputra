@@ -32,10 +32,11 @@ interface DiagnosisRecord {
 }
 
 const LANGUAGES = [
-  { code: "english", label: "English", flag: "🇬🇧" },
-  { code: "telugu", label: "తెలుగు", flag: "🇮🇳" },
-  { code: "tamil", label: "தமிழ்", flag: "🇮🇳" },
-  { code: "kannada", label: "ಕನ್ನಡ", flag: "🇮🇳" },
+  { code: "english", label: "English", flag: "🇬🇧", ttsCode: "en" },
+  { code: "hindi", label: "हिन्दी", flag: "🇮🇳", ttsCode: "hi" },
+  { code: "telugu", label: "తెలుగు", flag: "🇮🇳", ttsCode: "te" },
+  { code: "tamil", label: "தமிழ்", flag: "🇮🇳", ttsCode: "ta" },
+  { code: "kannada", label: "ಕನ್ನಡ", flag: "🇮🇳", ttsCode: "kn" },
 ];
 
 const AIDiseasePredictor = () => {
