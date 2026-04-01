@@ -374,6 +374,19 @@ const AIDiseasePredictor = () => {
                   )}
                 </div>
               ))}
+              {/* Voice Readout */}
+              <Button
+                variant={isSpeaking ? "destructive" : "outline"}
+                onClick={speakResults}
+                className="w-full"
+              >
+                {isSpeaking ? (
+                  <><VolumeX className="h-4 w-4 mr-2" />Stop Reading</>
+                ) : (
+                  <><Volume2 className="h-4 w-4 mr-2" />🔊 Read Aloud in {LANGUAGES.find(l => l.code === selectedLang)?.label}</>
+                )}
+              </Button>
+
               {/* Medicine Suggestions */}
               <MedicineSuggestions diseases={results.map(r => r.disease)} />
 
