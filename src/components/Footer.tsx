@@ -1,4 +1,4 @@
-import { Fish, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Fish, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, MessageCircle } from "lucide-react";
 
 const Footer = () => {
   const footerSections = [
