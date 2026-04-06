@@ -77,6 +77,10 @@ const Footer = () => {
                 <Phone className="w-4 h-4 text-accent" />
                 <span className="text-muted-foreground hover:text-primary">7569373499</span>
               </a>
+              <a href="https://wa.me/917569373499?text=Hi%2C%20I%20need%20help%20with%20GANGAPUTRA" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-green-500 transition-colors">
+                <MessageCircle className="w-4 h-4 text-green-500" />
+                <span className="text-muted-foreground hover:text-green-500">WhatsApp Support</span>
+              </a>
               <div className="flex items-center gap-3 text-sm">
                 <MapPin className="w-4 h-4 text-accent" />
                 <span className="text-muted-foreground">Bangalore, India</span>
