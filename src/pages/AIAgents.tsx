@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Bot, Droplets, Bug, Utensils, TrendingUp, Leaf, FlaskConical, Stethoscope, Send, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Bot, Droplets, Bug, Utensils, TrendingUp, Leaf, FlaskConical, Stethoscope, ListChecks } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-
+import AgentTaskRunner from "@/components/agents/AgentTaskRunner";
 
 const AGENTS = [
   {
@@ -16,7 +13,13 @@ const AGENTS = [
     color: "text-blue-500",
     bg: "bg-blue-500/10",
     description: "Analyze pH, DO, ammonia, salinity & get corrective action plans",
-    systemPrompt: `You are an expert Water Quality Advisor for aquaculture ponds. Help farmers analyze water parameters (pH, dissolved oxygen, ammonia, nitrite, salinity, alkalinity, temperature) and provide specific corrective actions. Always give practical, step-by-step remedies with dosage recommendations. Reference GANGAPUTRA's Water Parameters form on the Farm page for logging.`,
+    systemPrompt: `You are an expert Water Quality Advisor for aquaculture ponds. Help farmers analyze water parameters (pH, dissolved oxygen, ammonia, nitrite, salinity, alkalinity, temperature) and provide specific corrective actions. Always give practical, step-by-step remedies with dosage recommendations.`,
+    autoTasks: [
+      { id: "wq-1", title: "Generate Daily Water Quality Checklist", prompt: "Create a comprehensive daily water quality monitoring checklist for a shrimp pond. Include ideal ranges for each parameter (pH, DO, ammonia, nitrite, salinity, alkalinity, temperature), when to check each, and red-flag values that need immediate action." },
+      { id: "wq-2", title: "Analyze Common Water Issues & Solutions", prompt: "List the top 10 most common water quality problems in aquaculture ponds. For each, provide: the cause, symptoms to look for, immediate corrective action with exact dosages, and prevention tips." },
+      { id: "wq-3", title: "Seasonal Water Management Calendar", prompt: "Create a month-by-month water management calendar for shrimp farming in India. Include seasonal parameter adjustments, mineral supplementation schedules, and weather-related precautions." },
+      { id: "wq-4", title: "Emergency Water Crisis Protocols", prompt: "Provide emergency response protocols for: sudden pH crash, dissolved oxygen drop below 3 ppm, ammonia spike above 0.5 ppm, and algal bloom. Include step-by-step actions with timing and dosages." },
+    ],
   },
   {
     id: "disease-detective",
@@ -25,7 +28,13 @@ const AGENTS = [
     color: "text-red-500",
     bg: "bg-red-500/10",
     description: "Identify shrimp & fish diseases from symptoms and get treatment plans",
-    systemPrompt: `You are a Disease Detective AI specializing in aquaculture diseases. Help farmers identify diseases in shrimp (White Spot, EHP, Running Mortality, Loose Shell, etc.) and fish from described symptoms. Provide diagnosis, treatment protocols with specific medicines and dosages, and prevention strategies. Reference GANGAPUTRA's AI Disease Predictor and Medicine Directory for further help.`,
+    systemPrompt: `You are a Disease Detective AI specializing in aquaculture diseases. Help farmers identify diseases in shrimp and fish from described symptoms. Provide diagnosis, treatment protocols with specific medicines and dosages, and prevention strategies.`,
+    autoTasks: [
+      { id: "dd-1", title: "Disease Identification Guide", prompt: "Create a comprehensive visual identification guide for the top 10 shrimp diseases (White Spot, EHP, Running Mortality, Loose Shell, White Gut, Black Gill, etc.). For each: list symptoms, mortality rate, and urgency level." },
+      { id: "dd-2", title: "Treatment Protocols Database", prompt: "Generate a complete treatment protocol database for common shrimp diseases. Include medicine names, exact dosages per ton of water, treatment duration, withdrawal periods, and compatibility notes." },
+      { id: "dd-3", title: "Biosecurity Checklist", prompt: "Create a farm-level biosecurity checklist covering: pond preparation, seed selection, water treatment, visitor protocols, equipment sanitization, and quarantine procedures." },
+      { id: "dd-4", title: "Disease Prevention Calendar", prompt: "Create a crop-cycle disease prevention calendar from pond preparation to harvest. Include prophylactic treatments, immune boosters, probiotic schedules, and stress reduction measures at each stage." },
+    ],
   },
   {
     id: "feed-optimizer",
@@ -34,7 +43,13 @@ const AGENTS = [
     color: "text-amber-500",
     bg: "bg-amber-500/10",
     description: "Optimize feed schedules, FCR, and reduce feed costs",
-    systemPrompt: `You are a Feed Optimization AI for aquaculture. Help farmers optimize feed schedules, calculate proper feed quantities based on biomass, improve FCR (Feed Conversion Ratio), recommend feed types for different growth stages, and minimize feed wastage. Reference GANGAPUTRA's Smart Feed Calculator and Store for buying feed.`,
+    systemPrompt: `You are a Feed Optimization AI for aquaculture. Help farmers optimize feed schedules, calculate proper feed quantities based on biomass, improve FCR, recommend feed types for different growth stages, and minimize feed wastage.`,
+    autoTasks: [
+      { id: "fo-1", title: "Optimal Feed Schedule by Growth Stage", prompt: "Create a detailed feeding schedule for Vannamei shrimp from PL10 to harvest. Include feed type, protein %, meal frequency, feed rate as % body weight, and tray check times for each DOC (day of culture) range." },
+      { id: "fo-2", title: "FCR Improvement Strategies", prompt: "List 15 proven strategies to improve Feed Conversion Ratio (FCR) in shrimp farming. Include specific actions, expected FCR improvement, and cost-benefit analysis for each." },
+      { id: "fo-3", title: "Feed Cost Reduction Plan", prompt: "Create a feed cost optimization plan including: bulk buying strategies, feed storage best practices, reducing wastage techniques, supplement alternatives, and seasonal cost variations." },
+      { id: "fo-4", title: "Feeding During Stress Events", prompt: "Provide feeding protocols during: weather changes, disease outbreaks, molting periods, low DO events, and high ammonia. Include feed reduction percentages and recovery feeding plans." },
+    ],
   },
   {
     id: "market-analyst",
@@ -43,7 +58,13 @@ const AGENTS = [
     color: "text-green-500",
     bg: "bg-green-500/10",
     description: "Get market insights, best selling times, and pricing strategies",
-    systemPrompt: `You are a Market Price Analyst for aquaculture products (shrimp, fish, crab). Help farmers understand market trends, best times to sell, pricing strategies based on count/size, and negotiation tips. Reference GANGAPUTRA's live shrimp rates on Dashboard and Price Alerts feature.`,
+    systemPrompt: `You are a Market Price Analyst for aquaculture products. Help farmers understand market trends, best times to sell, pricing strategies based on count/size, and negotiation tips.`,
+    autoTasks: [
+      { id: "ma-1", title: "Current Market Trends Report", prompt: "Generate a market analysis report for Indian shrimp markets. Cover: price trends by count size (20, 30, 40, 50, 60, 70, 80, 100 count), regional price differences, export vs domestic demand, and seasonal patterns." },
+      { id: "ma-2", title: "Optimal Harvest Size Calculator", prompt: "Create a harvest decision framework: at what count/size should farmers harvest for maximum profit? Factor in: current market prices by count, feed costs to grow bigger, mortality risk, and pond opportunity cost." },
+      { id: "ma-3", title: "Price Negotiation Strategies", prompt: "Provide 10 proven negotiation strategies for shrimp farmers selling to traders/processors. Include: timing tactics, quality premiums to demand, bulk selling advantages, and direct buyer connections." },
+      { id: "ma-4", title: "Export Market Opportunities", prompt: "Analyze export opportunities for Indian shrimp farmers. Cover: key importing countries, required certifications (BAP, ASC), quality standards, export process steps, and premium price differences." },
+    ],
   },
   {
     id: "pond-planner",
@@ -52,7 +73,13 @@ const AGENTS = [
     color: "text-emerald-500",
     bg: "bg-emerald-500/10",
     description: "Plan stocking density, culture cycles, and pond preparation",
-    systemPrompt: `You are a Pond Culture Planning AI. Help farmers plan pond preparation, stocking density calculations, culture cycle timelines, species selection, biofloc setup, and seasonal planning. Provide detailed week-by-week culture plans. Reference GANGAPUTRA's Crop Manuals in Aquapedia.`,
+    systemPrompt: `You are a Pond Culture Planning AI. Help farmers plan pond preparation, stocking density calculations, culture cycle timelines, species selection, biofloc setup, and seasonal planning.`,
+    autoTasks: [
+      { id: "pp-1", title: "New Crop Planning Guide", prompt: "Create a complete new crop planning guide from Day -30 to Day 0 (stocking day). Include: pond drying, liming, water filling, fertilization, plankton development, water parameter targets before stocking, and seed quality checks." },
+      { id: "pp-2", title: "Stocking Density Calculator", prompt: "Provide stocking density recommendations for different scenarios: intensive, semi-intensive, and extensive culture. Include tables for pond size vs stocking count, expected survival rates, and production estimates." },
+      { id: "pp-3", title: "Week-by-Week Culture Plan", prompt: "Generate a detailed week-by-week culture management plan for a 120-day Vannamei shrimp crop. Include: water management, feeding, mineral supplementation, probiotic application, sampling schedule, and growth milestones." },
+      { id: "pp-4", title: "Multi-Crop Annual Calendar", prompt: "Plan an annual multi-crop calendar for maximum pond utilization. Include: optimal cropping seasons, monsoon precautions, inter-crop maintenance, and revenue projections for 2-3 crops per year." },
+    ],
   },
   {
     id: "lab-assistant",
@@ -61,7 +88,13 @@ const AGENTS = [
     color: "text-purple-500",
     bg: "bg-purple-500/10",
     description: "Help with mineral dosing, probiotics schedules, and chemical treatments",
-    systemPrompt: `You are a Lab & Chemistry Assistant for aquaculture. Help farmers with mineral dosing calculations, probiotic application schedules, chemical treatment protocols (for lime, bleach, EDTA, etc.), molarity calculations, and soil/water chemistry. Reference GANGAPUTRA's Molarity Calculator and Store for purchasing chemicals.`,
+    systemPrompt: `You are a Lab & Chemistry Assistant for aquaculture. Help farmers with mineral dosing calculations, probiotic application schedules, chemical treatment protocols, and soil/water chemistry.`,
+    autoTasks: [
+      { id: "la-1", title: "Complete Mineral Dosing Guide", prompt: "Create a comprehensive mineral dosing guide for shrimp farming. Cover: calcium, magnesium, potassium, sodium, EDTA, dolomite, and trace minerals. Include dosages per acre, frequency, and water parameter targets." },
+      { id: "la-2", title: "Probiotic Application Schedule", prompt: "Generate a complete probiotic management plan throughout the crop cycle. Include: types of probiotics (soil, water, gut), brands commonly used, application rates, timing, and storage guidelines." },
+      { id: "la-3", title: "Chemical Safety & Compatibility Chart", prompt: "Create a chemical compatibility chart for common aquaculture chemicals. Include: which chemicals can be mixed, minimum intervals between applications, and safety precautions for each." },
+      { id: "la-4", title: "Soil & Water Analysis Interpretation", prompt: "Explain how to interpret soil and water analysis reports. Cover: ideal values for each parameter, what deviations mean, corrective actions for each parameter, and how often to test." },
+    ],
   },
   {
     id: "vet-advisor",
@@ -70,135 +103,21 @@ const AGENTS = [
     color: "text-teal-500",
     bg: "bg-teal-500/10",
     description: "Get veterinary-grade advice on antibiotics, probiotics & biosecurity",
-    systemPrompt: `You are an Aqua Veterinary Advisor. Provide veterinary-grade advice on antibiotic usage (withdrawal periods, dosages), probiotic protocols, biosecurity measures, quarantine procedures, and health management strategies for aquaculture. Reference GANGAPUTRA's Doctor Directory to book appointments with real aqua vets.`,
+    systemPrompt: `You are an Aqua Veterinary Advisor. Provide veterinary-grade advice on antibiotic usage, probiotic protocols, biosecurity measures, quarantine procedures, and health management strategies.`,
+    autoTasks: [
+      { id: "va-1", title: "Antibiotic Usage & Withdrawal Guide", prompt: "Create a comprehensive guide on antibiotic use in aquaculture. Cover: approved antibiotics, dosages, withdrawal periods, resistance concerns, alternatives to antibiotics, and regulatory compliance." },
+      { id: "va-2", title: "Health Monitoring Protocols", prompt: "Generate weekly health monitoring protocols including: behavioral observation checklist, sampling methods, gut health assessment, hepatopancreas checks, and when to call a vet." },
+      { id: "va-3", title: "Immune Booster Program", prompt: "Design an immune boosting program for shrimp/fish throughout the culture cycle. Include: immunostimulants, herbal supplements, vitamins, nucleotides, and beta-glucans with dosages and timing." },
+      { id: "va-4", title: "Post-Disease Recovery Plan", prompt: "Create recovery plans for ponds after disease outbreaks. Cover: water treatment, biofloc recovery, re-stocking decisions, nutrition programs for survivors, and lessons-learned documentation." },
+    ],
   },
 ];
 
-type Message = { role: "user" | "assistant"; content: string };
-
 const AIAgents = () => {
   const [selectedAgent, setSelectedAgent] = useState<typeof AGENTS[0] | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const selectAgent = (agent: typeof AGENTS[0]) => {
-    setSelectedAgent(agent);
-    setMessages([]);
-    setInput("");
-  };
-
-  const sendMessage = async () => {
-    if (!input.trim() || !selectedAgent || isLoading) return;
-    const userMsg: Message = { role: "user", content: input.trim() };
-    const allMessages = [...messages, userMsg];
-    setMessages(allMessages);
-    setInput("");
-    setIsLoading(true);
-
-    let assistantSoFar = "";
-
-    try {
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-agent-chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ messages: allMessages, agentPrompt: selectedAgent.systemPrompt }),
-      });
-
-      if (!resp.ok || !resp.body) throw new Error("Failed to connect to AI agent");
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              assistantSoFar += content;
-              setMessages(prev => {
-                const last = prev[prev.length - 1];
-                if (last?.role === "assistant") {
-                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
-                }
-                return [...prev, { role: "assistant", content: assistantSoFar }];
-              });
-            }
-          } catch { textBuffer = line + "\n" + textBuffer; break; }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I couldn't process your request. Please try again." }]);
-    }
-    setIsLoading(false);
-  };
 
   if (selectedAgent) {
-    const AgentIcon = selectedAgent.icon;
-    return (
-      <div className="min-h-screen bg-background flex flex-col pb-20">
-        <div className={`${selectedAgent.bg} border-b p-4`}>
-          <div className="flex items-center gap-3 max-w-2xl mx-auto">
-            <Button variant="ghost" size="icon" onClick={() => setSelectedAgent(null)}><ArrowLeft className="h-5 w-5" /></Button>
-            <AgentIcon className={`h-6 w-6 ${selectedAgent.color}`} />
-            <div>
-              <h1 className="font-bold">{selectedAgent.name}</h1>
-              <p className="text-xs text-muted-foreground">{selectedAgent.description}</p>
-            </div>
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1 p-4 max-w-2xl mx-auto w-full">
-          {messages.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <AgentIcon className={`h-12 w-12 mx-auto mb-3 ${selectedAgent.color} opacity-50`} />
-              <p className="text-sm">Ask me anything about {selectedAgent.name.toLowerCase()}!</p>
-            </div>
-          )}
-          <div className="space-y-3">
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                  {m.role === "assistant" ? (
-                    <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                      {m.content}
-                    </div>
-                  ) : m.content}
-                </div>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-
-        <div className="border-t p-3 max-w-2xl mx-auto w-full">
-          <div className="flex gap-2">
-            <Textarea value={input} onChange={e => setInput(e.target.value)} placeholder={`Ask ${selectedAgent.name}...`}
-              className="min-h-[44px] max-h-[120px] resize-none" rows={1}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }}} />
-            <Button onClick={sendMessage} disabled={!input.trim() || isLoading} size="icon" className="shrink-0 h-[44px] w-[44px]">
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <AgentTaskRunner agent={selectedAgent} onBack={() => setSelectedAgent(null)} />;
   }
 
   return (
@@ -209,18 +128,20 @@ const AIAgents = () => {
           <Bot className="h-6 w-6" />
           <div>
             <h1 className="text-xl font-bold">AI Agents</h1>
-            <p className="text-sm opacity-90">Specialized AI assistants for aqua farming</p>
+            <p className="text-sm opacity-90">Autonomous AI assistants — they do the work for you</p>
           </div>
         </div>
       </div>
 
       <div className="p-4 max-w-2xl mx-auto space-y-3">
-        <p className="text-sm text-muted-foreground">Choose a specialized AI agent to get expert guidance on specific aspects of your aquaculture operations.</p>
-        
+        <p className="text-sm text-muted-foreground">
+          Select an agent and click <strong>"Run All Tasks"</strong> — the AI will automatically generate reports, checklists, and action plans without any input needed.
+        </p>
+
         {AGENTS.map(agent => {
           const Icon = agent.icon;
           return (
-            <Card key={agent.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => selectAgent(agent)}>
+            <Card key={agent.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedAgent(agent)}>
               <CardContent className="p-4 flex items-center gap-4">
                 <div className={`p-3 rounded-xl ${agent.bg}`}>
                   <Icon className={`h-6 w-6 ${agent.color}`} />
@@ -228,8 +149,12 @@ const AIAgents = () => {
                 <div className="flex-1">
                   <h3 className="font-semibold">{agent.name}</h3>
                   <p className="text-sm text-muted-foreground">{agent.description}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <ListChecks className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{agent.autoTasks.length} automated tasks</span>
+                  </div>
                 </div>
-                <Badge variant="secondary" className="shrink-0">Chat</Badge>
+                <Badge variant="secondary" className="shrink-0">Auto</Badge>
               </CardContent>
             </Card>
           );
