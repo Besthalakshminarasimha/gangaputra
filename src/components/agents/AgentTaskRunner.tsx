@@ -38,8 +38,9 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
   const [tasks, setTasks] = useState<AgentTask[]>(
     agent.autoTasks.map(t => ({ ...t, status: "pending" as TaskStatus }))
   );
-  const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [isRunningAll, setIsRunningAll] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const runSingleTask = async (taskId: string) => {
