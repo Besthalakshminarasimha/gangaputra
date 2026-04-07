@@ -175,12 +175,12 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
         <ScrollArea className="h-[calc(100vh-220px)]">
           <div className="space-y-3">
             {tasks.map((task, index) => (
-              <Card
+               <Card
                 key={task.id}
                 className={`transition-all cursor-pointer ${
-                  expandedTask === task.id ? "ring-2 ring-primary/30" : ""
+                  expandedTasks.has(task.id) || activeTaskId === task.id ? "ring-2 ring-primary/30" : ""
                 } ${task.status === "done" ? "border-green-500/30" : task.status === "error" ? "border-red-500/30" : ""}`}
-                onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                onClick={() => toggleTask(task.id)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
