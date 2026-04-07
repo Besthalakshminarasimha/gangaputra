@@ -58,6 +58,7 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
 
     setActiveTaskId(taskId);
     setExpandedTasks(prev => new Set(prev).add(taskId));
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "running", result: undefined } : t));
 
     try {
       const controller = new AbortController();
