@@ -213,7 +213,7 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
                     )}
                   </div>
 
-                  {expandedTask === task.id && task.result && (
+                  {(expandedTasks.has(task.id) || activeTaskId === task.id) && task.result && (
                     <div className="mt-4 pt-3 border-t">
                       <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
                         <ReactMarkdown>{task.result}</ReactMarkdown>
