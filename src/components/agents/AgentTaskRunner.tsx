@@ -43,11 +43,21 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  const toggleTask = (taskId: string) => {
+    setExpandedTasks(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  };
+
   const runSingleTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "running", result: undefined } : t));
+    setActiveTaskId(taskId);
+    setExpandedTasks(prev => new Set(prev).add(taskId));
 
     try {
       const controller = new AbortController();
