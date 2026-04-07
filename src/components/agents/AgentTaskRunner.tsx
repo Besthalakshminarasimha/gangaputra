@@ -38,14 +38,26 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
   const [tasks, setTasks] = useState<AgentTask[]>(
     agent.autoTasks.map(t => ({ ...t, status: "pending" as TaskStatus }))
   );
-  const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [isRunningAll, setIsRunningAll] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  const toggleTask = (taskId: string) => {
+    setExpandedTasks(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  };
 
   const runSingleTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
+    setActiveTaskId(taskId);
+    setExpandedTasks(prev => new Set(prev).add(taskId));
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "running", result: undefined } : t));
 
     try {
@@ -163,12 +175,12 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
         <ScrollArea className="h-[calc(100vh-220px)]">
           <div className="space-y-3">
             {tasks.map((task, index) => (
-              <Card
+               <Card
                 key={task.id}
                 className={`transition-all cursor-pointer ${
-                  expandedTask === task.id ? "ring-2 ring-primary/30" : ""
+                  expandedTasks.has(task.id) || activeTaskId === task.id ? "ring-2 ring-primary/30" : ""
                 } ${task.status === "done" ? "border-green-500/30" : task.status === "error" ? "border-red-500/30" : ""}`}
-                onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                onClick={() => toggleTask(task.id)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -201,7 +213,7 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
                     )}
                   </div>
 
-                  {expandedTask === task.id && task.result && (
+                  {(expandedTasks.has(task.id) || activeTaskId === task.id) && task.result && (
                     <div className="mt-4 pt-3 border-t">
                       <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
                         <ReactMarkdown>{task.result}</ReactMarkdown>
