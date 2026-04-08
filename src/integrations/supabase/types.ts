@@ -742,6 +742,92 @@ export type Database = {
           },
         ]
       }
+      loan_applications: {
+        Row: {
+          aadhaar_number: string | null
+          admin_notes: string | null
+          annual_revenue: number | null
+          bank_account_number: string | null
+          bank_id: string
+          collateral_details: string | null
+          created_at: string
+          email: string | null
+          existing_loans_amount: number | null
+          farm_location: string
+          farm_size_acres: number
+          full_name: string
+          id: string
+          ifsc_code: string | null
+          loan_amount_requested: number
+          loan_purpose: string
+          pan_number: string | null
+          phone: string
+          species_cultivated: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          years_in_aquaculture: number | null
+        }
+        Insert: {
+          aadhaar_number?: string | null
+          admin_notes?: string | null
+          annual_revenue?: number | null
+          bank_account_number?: string | null
+          bank_id: string
+          collateral_details?: string | null
+          created_at?: string
+          email?: string | null
+          existing_loans_amount?: number | null
+          farm_location: string
+          farm_size_acres: number
+          full_name: string
+          id?: string
+          ifsc_code?: string | null
+          loan_amount_requested: number
+          loan_purpose: string
+          pan_number?: string | null
+          phone: string
+          species_cultivated?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          years_in_aquaculture?: number | null
+        }
+        Update: {
+          aadhaar_number?: string | null
+          admin_notes?: string | null
+          annual_revenue?: number | null
+          bank_account_number?: string | null
+          bank_id?: string
+          collateral_details?: string | null
+          created_at?: string
+          email?: string | null
+          existing_loans_amount?: number | null
+          farm_location?: string
+          farm_size_acres?: number
+          full_name?: string
+          id?: string
+          ifsc_code?: string | null
+          loan_amount_requested?: number
+          loan_purpose?: string
+          pan_number?: string | null
+          phone?: string
+          species_cultivated?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          years_in_aquaculture?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_applications_bank_id_fkey"
+            columns: ["bank_id"]
+            isOneToOne: false
+            referencedRelation: "partner_banks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       magazines: {
         Row: {
           content: string | null
@@ -964,6 +1050,60 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      partner_banks: {
+        Row: {
+          bank_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          id: string
+          interest_rate_max: number | null
+          interest_rate_min: number | null
+          is_active: boolean | null
+          loan_types: string[] | null
+          logo_url: string | null
+          max_loan_amount: number | null
+          min_loan_amount: number | null
+          requirements: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          interest_rate_max?: number | null
+          interest_rate_min?: number | null
+          is_active?: boolean | null
+          loan_types?: string[] | null
+          logo_url?: string | null
+          max_loan_amount?: number | null
+          min_loan_amount?: number | null
+          requirements?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          interest_rate_max?: number | null
+          interest_rate_min?: number | null
+          is_active?: boolean | null
+          loan_types?: string[] | null
+          logo_url?: string | null
+          max_loan_amount?: number | null
+          min_loan_amount?: number | null
+          requirements?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

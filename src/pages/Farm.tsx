@@ -17,7 +17,8 @@ import {
   Calculator,
   Wrench,
   DollarSign,
-  FileText
+  FileText,
+  Landmark
 } from "lucide-react";
 import WaterParametersForm from "@/components/farm/WaterParametersForm";
 import AIDiseasePredictor from "@/components/farm/AIDiseasePredictor";
@@ -26,6 +27,7 @@ import SmartFeedCalculator from "@/components/calculators/SmartFeedCalculator";
 import ProfitLossLedger from "@/components/farm/ProfitLossLedger";
 import TraceabilityLog from "@/components/farm/TraceabilityLog";
 import DoctorDirectory from "@/components/farm/DoctorDirectory";
+import BankLoanSection from "@/components/farm/BankLoanSection";
 
 const Farm = () => {
   const navigate = useNavigate();
@@ -123,7 +125,7 @@ const Farm = () => {
       <div className="p-4 space-y-6">
         {/* Main Tabs */}
         <Tabs defaultValue="tools" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="tools" className="flex items-center gap-1 text-xs">
               <Wrench className="h-4 w-4" />
               Tools
@@ -135,6 +137,10 @@ const Farm = () => {
             <TabsTrigger value="finance" className="flex items-center gap-1 text-xs">
               <DollarSign className="h-4 w-4" />
               Finance
+            </TabsTrigger>
+            <TabsTrigger value="loans" className="flex items-center gap-1 text-xs">
+              <Landmark className="h-4 w-4" />
+              Loans
             </TabsTrigger>
             <TabsTrigger value="traceability" className="flex items-center gap-1 text-xs">
               <FileText className="h-4 w-4" />
@@ -291,6 +297,10 @@ const Farm = () => {
 
           <TabsContent value="finance" className="mt-4">
             <ProfitLossLedger />
+          </TabsContent>
+
+          <TabsContent value="loans" className="mt-4">
+            <BankLoanSection />
           </TabsContent>
 
           <TabsContent value="traceability" className="mt-4">
