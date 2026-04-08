@@ -157,6 +157,16 @@ const AdminBankLoans = () => {
     if (notes !== undefined) update.admin_notes = notes;
     const { error } = await supabase.from("loan_applications").update(update).eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    
+    // Send notification to farmer
+    try {
+      await supabase.functions.invoke("send-loan-status-notification", {
+        body: { applicationId: id, newStatus: status, adminNotes: notes },
+      });
+    } catch (notifErr) {
+      console.error("Notification error:", notifErr);
+    }
+    
     toast({ title: `Application ${status}` });
     fetchApplications();
     setShowAppDialog(false);
