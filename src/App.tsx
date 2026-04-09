@@ -13,6 +13,7 @@ import AIAssistant from "./components/AIAssistant";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 // Lazy load pages for better performance
+const Introduction = lazy(() => import("./pages/Introduction"));
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -39,7 +40,8 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Suspense fallback={<PageSkeleton />}>
         <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+          <Route path="/" element={<PageTransition><Introduction /></PageTransition>} />
+          <Route path="/home" element={<PageTransition><Index /></PageTransition>} />
           <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
           <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
           <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
