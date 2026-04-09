@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { Landmark, Building2, ChevronRight, FileText, Clock } from "lucide-react";
+import { Landmark, Building2, ChevronRight, FileText, Clock, Calculator, Upload, X, Loader2 } from "lucide-react";
 
 interface PartnerBank {
   id: string;
@@ -36,6 +35,67 @@ interface MyApplication {
   bank_id: string;
 }
 
+// EMI Calculator Component
+const EMICalculator = () => {
+  const [principal, setPrincipal] = useState("");
+  const [rate, setRate] = useState("");
+  const [tenure, setTenure] = useState("");
+
+  const calcEMI = () => {
+    const P = Number(principal);
+    const R = Number(rate) / 12 / 100;
+    const N = Number(tenure);
+    if (!P || !R || !N) return null;
+    const emi = (P * R * Math.pow(1 + R, N)) / (Math.pow(1 + R, N) - 1);
+    return { emi: Math.round(emi), totalPayment: Math.round(emi * N), totalInterest: Math.round(emi * N - P) };
+  };
+
+  const result = calcEMI();
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Calculator className="h-5 w-5 text-primary" />
+          EMI Calculator
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs">Loan Amount (₹)</Label>
+            <Input type="number" placeholder="500000" value={principal} onChange={e => setPrincipal(e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">Interest Rate (%/yr)</Label>
+            <Input type="number" placeholder="8.5" value={rate} onChange={e => setRate(e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">Tenure (months)</Label>
+            <Input type="number" placeholder="36" value={tenure} onChange={e => setTenure(e.target.value)} />
+          </div>
+        </div>
+        {result && (
+          <div className="grid grid-cols-3 gap-3 pt-2">
+            <div className="text-center p-2 bg-background rounded-lg">
+              <p className="text-xs text-muted-foreground">Monthly EMI</p>
+              <p className="font-bold text-primary">₹{result.emi.toLocaleString()}</p>
+            </div>
+            <div className="text-center p-2 bg-background rounded-lg">
+              <p className="text-xs text-muted-foreground">Total Payment</p>
+              <p className="font-bold">₹{result.totalPayment.toLocaleString()}</p>
+            </div>
+            <div className="text-center p-2 bg-background rounded-lg">
+              <p className="text-xs text-muted-foreground">Total Interest</p>
+              <p className="font-bold text-destructive">₹{result.totalInterest.toLocaleString()}</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 const BankLoanSection = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -44,6 +104,8 @@ const BankLoanSection = () => {
   const [selectedBank, setSelectedBank] = useState<PartnerBank | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; url: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     full_name: "", phone: "", email: "", farm_location: "", farm_size_acres: "",
     species_cultivated: "", years_in_aquaculture: "", annual_revenue: "",
@@ -70,7 +132,35 @@ const BankLoanSection = () => {
 
   const handleApply = (bank: PartnerBank) => {
     setSelectedBank(bank);
+    setUploadedFiles([]);
     setShowForm(true);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !user) return;
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: `${file.name} exceeds 5MB limit`, variant: "destructive" });
+        continue;
+      }
+      const ext = file.name.split('.').pop();
+      const path = `kyc/${user.id}/${Date.now()}_${file.name}`;
+      const { error } = await supabase.storage.from("content").upload(path, file);
+      if (error) {
+        toast({ title: `Failed to upload ${file.name}`, variant: "destructive" });
+      } else {
+        const { data: urlData } = supabase.storage.from("content").getPublicUrl(path);
+        setUploadedFiles(prev => [...prev, { name: file.name, url: urlData.publicUrl }]);
+      }
+    }
+    setUploading(false);
+    e.target.value = "";
+  };
+
+  const removeFile = (idx: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async () => {
@@ -80,6 +170,7 @@ const BankLoanSection = () => {
       return;
     }
     setSubmitting(true);
+    const docUrls = uploadedFiles.map(f => f.url).join(", ");
     const { error } = await supabase.from("loan_applications").insert({
       user_id: user.id,
       bank_id: selectedBank.id,
@@ -94,7 +185,7 @@ const BankLoanSection = () => {
       loan_amount_requested: Number(form.loan_amount_requested),
       loan_purpose: form.loan_purpose,
       existing_loans_amount: Number(form.existing_loans_amount) || 0,
-      collateral_details: form.collateral_details || null,
+      collateral_details: [form.collateral_details, docUrls ? `KYC Docs: ${docUrls}` : ""].filter(Boolean).join("\n") || null,
       aadhaar_number: form.aadhaar_number || null,
       pan_number: form.pan_number || null,
       bank_account_number: form.bank_account_number || null,
@@ -107,6 +198,7 @@ const BankLoanSection = () => {
     }
     toast({ title: "Loan application submitted successfully!" });
     setShowForm(false);
+    setUploadedFiles([]);
     setForm({ full_name: "", phone: "", email: "", farm_location: "", farm_size_acres: "", species_cultivated: "", years_in_aquaculture: "", annual_revenue: "", loan_amount_requested: "", loan_purpose: "", existing_loans_amount: "0", collateral_details: "", aadhaar_number: "", pan_number: "", bank_account_number: "", ifsc_code: "" });
     fetchMyApplications();
   };
@@ -131,6 +223,9 @@ const BankLoanSection = () => {
           <p className="text-sm text-muted-foreground">Get financing for your aquaculture investment from our partner banks</p>
         </CardHeader>
       </Card>
+
+      {/* EMI Calculator */}
+      <EMICalculator />
 
       {/* Partner Banks */}
       <div className="space-y-3">
@@ -236,6 +331,31 @@ const BankLoanSection = () => {
               <div><Label>Bank Account Number</Label><Input value={form.bank_account_number} onChange={e => setForm(p => ({ ...p, bank_account_number: e.target.value }))} /></div>
               <div><Label>IFSC Code</Label><Input value={form.ifsc_code} onChange={e => setForm(p => ({ ...p, ifsc_code: e.target.value }))} /></div>
             </div>
+
+            {/* Document Upload */}
+            <p className="text-sm font-medium text-muted-foreground pt-2">Upload KYC Documents</p>
+            <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-4 text-center">
+              <Upload className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+              <p className="text-xs text-muted-foreground mb-2">Upload Aadhaar, PAN, Land Documents (Max 5MB each)</p>
+              <label className="cursor-pointer">
+                <Input type="file" className="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload} />
+                <Button type="button" variant="outline" size="sm" disabled={uploading} asChild>
+                  <span>{uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Uploading...</> : "Choose Files"}</span>
+                </Button>
+              </label>
+            </div>
+            {uploadedFiles.length > 0 && (
+              <div className="space-y-1">
+                {uploadedFiles.map((f, i) => (
+                  <div key={i} className="flex items-center justify-between bg-muted/50 rounded px-3 py-1.5 text-sm">
+                    <span className="truncate flex-1">{f.name}</span>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFile(i)}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <Button onClick={handleSubmit} className="w-full" disabled={submitting}>
               {submitting ? "Submitting..." : "Submit Application"}
