@@ -17,7 +17,9 @@ const Index = () => {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && !user) {
+      navigate("/");
+    } else if (!loading && user) {
       navigate("/dashboard");
     }
   }, [user, loading, navigate]);
