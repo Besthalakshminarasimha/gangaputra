@@ -13,6 +13,14 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // Check if any message contains image content (multimodal)
+    const hasImage = messages.some((m: any) =>
+      Array.isArray(m.content) && m.content.some((c: any) => c.type === "image_url")
+    );
+
+    // Use a vision-capable model when images are present
+    const model = hasImage ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash";
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -20,7 +28,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model,
         messages: [
           { role: "system", content: agentPrompt + "\n\nKeep responses concise and actionable. Use emojis for readability. Format with markdown." },
           ...messages,
