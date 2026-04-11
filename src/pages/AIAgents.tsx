@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Bot, Droplets, Bug, Utensils, TrendingUp, Leaf, FlaskConical, Stethoscope, ListChecks } from "lucide-react";
+import { ArrowLeft, Bot, Droplets, Bug, Utensils, TrendingUp, Leaf, FlaskConical, Stethoscope, ListChecks, Globe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AgentTaskRunner from "@/components/agents/AgentTaskRunner";
@@ -109,6 +109,22 @@ const AGENTS = [
       { id: "va-2", title: "Health Monitoring Protocols", prompt: "Generate weekly health monitoring protocols including: behavioral observation checklist, sampling methods, gut health assessment, hepatopancreas checks, and when to call a vet." },
       { id: "va-3", title: "Immune Booster Program", prompt: "Design an immune boosting program for shrimp/fish throughout the culture cycle. Include: immunostimulants, herbal supplements, vitamins, nucleotides, and beta-glucans with dosages and timing." },
       { id: "va-4", title: "Post-Disease Recovery Plan", prompt: "Create recovery plans for ponds after disease outbreaks. Cover: water treatment, biofloc recovery, re-stocking decisions, nutrition programs for survivors, and lessons-learned documentation." },
+    ],
+  },
+  {
+    id: "browser-agent",
+    name: "Comet Browser Agent",
+    icon: Globe,
+    color: "text-orange-500",
+    bg: "bg-orange-500/10",
+    description: "Autonomous agent that browses, researches, collects data & completes tasks end-to-end",
+    systemPrompt: `You are the Comet Browser Agent — an autonomous AI assistant that acts as if it can browse the internet, search for information, collect data, compare products, fill forms, and complete multi-step tasks for aqua farmers. You simulate browsing by providing comprehensive, up-to-date research results. When given a task, break it down into steps (Search → Navigate → Extract → Compile → Report) and present results as if you browsed and collected them live. Always show your step-by-step workflow with status indicators. Format output as actionable reports with links, prices, contacts, and recommendations.`,
+    autoTasks: [
+      { id: "ba-1", title: "Research Best Shrimp Feed Brands & Prices", prompt: "Act as a browser agent: Search for the top 10 shrimp feed brands available in India. For each brand, find: product name, protein %, price per kg, availability (online/offline), and farmer reviews. Compare them in a table and give a final recommendation for best value-for-money." },
+      { id: "ba-2", title: "Find Government Subsidies & Schemes", prompt: "Browse and compile all active government subsidies, schemes, and grants available for aquaculture farmers in India (central + state-wise). For each scheme: name, eligibility criteria, subsidy amount, application process, deadline, and official website/contact. Present as a comprehensive guide." },
+      { id: "ba-3", title: "Competitor Market Price Survey", prompt: "Conduct a market survey: Search for current shrimp prices across all major Indian markets (Bhimavaram, Nellore, Chennai, Kolkata, Mumbai, Gujarat). For each market: current price by count (20/30/40/50/60/80/100), trend (up/down/stable), and best time to sell. Compile into an actionable pricing dashboard." },
+      { id: "ba-4", title: "Equipment & Supplier Directory", prompt: "Browse and create a comprehensive directory of aquaculture equipment suppliers in India. Cover: aerators, auto-feeders, water testing kits, pond liners, and IoT sensors. For each supplier: company name, products offered, price range, location, contact info, and delivery options. Rank by farmer satisfaction." },
+      { id: "ba-5", title: "Latest Aquaculture Research & News", prompt: "Browse the latest aquaculture research papers, news articles, and industry updates from the past month. Summarize the top 15 most relevant findings for Indian shrimp farmers. Include: new disease outbreaks reported, technology innovations, policy changes, export market updates, and upcoming aquaculture events/conferences." },
     ],
   },
 ];
