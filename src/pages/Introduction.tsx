@@ -123,6 +123,48 @@ const features = [
   },
 ];
 
+const LANGUAGE_NAMES = [
+  { text: "గంగాపుత్ర", lang: "Telugu" },
+  { text: "गंगापुत्र", lang: "Hindi" },
+  { text: "கங்காபுத்ரா", lang: "Tamil" },
+  { text: "ಗಂಗಾಪುತ್ರ", lang: "Kannada" },
+  { text: "গঙ্গাপুত্র", lang: "Bengali" },
+  { text: "ગંગાપુત્ર", lang: "Gujarati" },
+  { text: "ഗംഗാപുത്ര", lang: "Malayalam" },
+  { text: "ਗੰਗਾਪੁੱਤਰ", lang: "Punjabi" },
+];
+
+const AnimatedLanguageName = () => {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex(prev => (prev + 1) % LANGUAGE_NAMES.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span className="block mt-2 h-14 relative overflow-hidden">
+      {LANGUAGE_NAMES.map((item, i) => (
+        <motion.span
+          key={item.lang}
+          className="absolute inset-0 flex items-center justify-center text-3xl md:text-4xl font-normal text-cyan-300"
+          initial={false}
+          animate={{
+            y: i === index ? 0 : i === (index - 1 + LANGUAGE_NAMES.length) % LANGUAGE_NAMES.length ? -50 : 50,
+            opacity: i === index ? 1 : 0,
+          }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        >
+          {item.text}
+          <span className="ml-3 text-base text-cyan-400/60 font-medium">({item.lang})</span>
+        </motion.span>
+      ))}
+    </span>
+  );
+};
+
 const Introduction = () => {
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
@@ -218,9 +260,7 @@ const Introduction = () => {
             className="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight"
           >
             GANGAPUTRA
-            <span className="block text-3xl md:text-4xl font-normal text-cyan-300 mt-2">
-              గంగాపుత్ర
-            </span>
+            <AnimatedLanguageName />
           </motion.h1>
 
           <motion.p
