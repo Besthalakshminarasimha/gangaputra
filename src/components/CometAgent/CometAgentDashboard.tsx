@@ -139,7 +139,7 @@ export default function CometAgentDashboard() {
 
     // Validate input
     const validation = validateObjective(objective);
-    if (!validation.ok) {
+    if (validation.ok === false) {
       toast({ title: "Invalid input", description: validation.reason, variant: "destructive" });
       return;
     }
