@@ -120,6 +120,42 @@ export type Database = {
           },
         ]
       }
+      comet_agent_tasks: {
+        Row: {
+          citations: Json | null
+          created_at: string
+          error: string | null
+          id: string
+          objective: string
+          result: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          citations?: Json | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          objective: string
+          result?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          citations?: Json | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          objective?: string
+          result?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       crop_cycles: {
         Row: {
           created_at: string
