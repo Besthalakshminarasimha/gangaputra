@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.send-appointment-email]
 verify_jwt = false
+
+[functions.comet-browser-agent]
+verify_jwt = false

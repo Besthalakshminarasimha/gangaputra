@@ -4,6 +4,7 @@ import { ArrowLeft, Bot, Droplets, Bug, Utensils, TrendingUp, Leaf, FlaskConical
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AgentTaskRunner from "@/components/agents/AgentTaskRunner";
+import { CometAgentDashboard } from "@/components/CometAgent";
 
 const AGENTS = [
   {
@@ -153,6 +154,9 @@ const AIAgents = () => {
         <p className="text-sm text-muted-foreground">
           Select an agent and click <strong>"Run All Tasks"</strong> — the AI will automatically generate reports, checklists, and action plans without any input needed.
         </p>
+
+        <CometAgentDashboard />
+
 
         {AGENTS.map(agent => {
           const Icon = agent.icon;
