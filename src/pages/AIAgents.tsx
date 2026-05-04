@@ -155,6 +155,9 @@ const AIAgents = () => {
           Select an agent and click <strong>"Run All Tasks"</strong> — the AI will automatically generate reports, checklists, and action plans without any input needed.
         </p>
 
+        <CometAgentDashboard />
+
+
         {AGENTS.map(agent => {
           const Icon = agent.icon;
           return (
