@@ -4,6 +4,7 @@ import { ArrowLeft, Bot, Droplets, Bug, Utensils, TrendingUp, Leaf, FlaskConical
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AgentTaskRunner from "@/components/agents/AgentTaskRunner";
+import { CometAgentDashboard } from "@/components/CometAgent";
 
 const AGENTS = [
   {
