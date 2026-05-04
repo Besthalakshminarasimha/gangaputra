@@ -26,14 +26,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    const token = authHeader.replace("Bearer ", "");
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
     if (userError || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      console.error("Auth failed:", userError?.message);
+      return new Response(JSON.stringify({ error: "Unauthorized — please sign in to use the Comet agent" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
