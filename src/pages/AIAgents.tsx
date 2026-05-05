@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AgentTaskRunner from "@/components/agents/AgentTaskRunner";
 import { CometAgentDashboard } from "@/components/CometAgent";
+import AquaHealthAgent from "@/components/agents/AquaHealthAgent";
 
 const AGENTS = [
   {
@@ -154,6 +155,8 @@ const AIAgents = () => {
         <p className="text-sm text-muted-foreground">
           Select an agent and click <strong>"Run All Tasks"</strong> — the AI will automatically generate reports, checklists, and action plans without any input needed.
         </p>
+
+        <AquaHealthAgent />
 
         <CometAgentDashboard />
 
