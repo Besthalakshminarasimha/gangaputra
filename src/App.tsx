@@ -29,6 +29,7 @@ const Jobs = lazy(() => import("./pages/Jobs"));
 const AIAgents = lazy(() => import("./pages/AIAgents"));
 const AdminAuth = lazy(() => import("./pages/AdminAuth"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const SharedHealthReport = lazy(() => import("./pages/SharedHealthReport"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const AnimatedRoutes = () => {
           <Route path="/ai-agents" element={<PageTransition><AIAgents /></PageTransition>} />
           <Route path="/admin" element={<PageTransition><AdminAuth /></PageTransition>} />
           <Route path="/admin/dashboard" element={<PageTransition><AdminDashboard /></PageTransition>} />
+          <Route path="/health-report/:token" element={<PageTransition><SharedHealthReport /></PageTransition>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
         </Routes>
