@@ -560,6 +560,54 @@ export type Database = {
         }
         Relationships: []
       }
+      health_reports: {
+        Row: {
+          created_at: string
+          diagnoses: Json
+          doctors: Json
+          id: string
+          image_url: string | null
+          latitude: number | null
+          longitude: number | null
+          medicines: Json
+          share_token: string
+          stores: Json
+          symptoms: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnoses?: Json
+          doctors?: Json
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          medicines?: Json
+          share_token?: string
+          stores?: Json
+          symptoms?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnoses?: Json
+          doctors?: Json
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          medicines?: Json
+          share_token?: string
+          stores?: Json
+          symptoms?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           applicant_id: string
