@@ -9,23 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { QRCodeSVG } from "qrcode.react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import {
   Activity, AlertTriangle, Camera, Loader2, MapPin, Pill, Stethoscope,
   Store as StoreIcon, Phone, MessageCircle, CalendarPlus, Save, Share2,
-  ShieldAlert, History, Trash2,
+  ShieldAlert, History, Trash2, Navigation,
 } from "lucide-react";
-
-// --- Leaflet default-icon fix (Vite) ---
-const DefaultIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41], iconAnchor: [12, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
 
 // --- Types ---
 interface Diagnosis {
@@ -437,34 +425,43 @@ const AquaHealthAgent = () => {
               </>
             )}
 
-            {(doctors.length > 0 || stores.length > 0) && (
+            {stores.length > 0 && (
               <>
                 <Separator />
                 <div className="space-y-2">
                   <h3 className="font-semibold flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-blue-500" /> Map: Nearest Doctors & Aqua Stores
+                    <StoreIcon className="h-4 w-4 text-blue-500" /> Nearest Aqua Stores
                   </h3>
-                  <div className="h-72 rounded-lg overflow-hidden border">
-                    <MapContainer center={mapCenter} zoom={coords ? 11 : 8} style={{ height: "100%", width: "100%" }}>
-                      <TileLayer
-                        attribution='&copy; OpenStreetMap'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
-                      {coords && (
-                        <Marker position={[coords.lat, coords.lon]}>
-                          <Popup>Your location</Popup>
-                        </Marker>
-                      )}
-                      {stores.filter(s => s.latitude && s.longitude).map(s => (
-                        <Marker key={s.id} position={[s.latitude!, s.longitude!]}>
-                          <Popup>
-                            <strong>{s.name}</strong><br />
-                            {s.type} · {s.location}<br />
-                            {s.distance && s.distance !== Infinity && `${s.distance.toFixed(1)} km away`}
-                          </Popup>
-                        </Marker>
-                      ))}
-                    </MapContainer>
+                  <div className="grid gap-2">
+                    {stores.slice(0, 5).map((s) => {
+                      const hasCoords = s.latitude && s.longitude;
+                      const mapsUrl = hasCoords
+                        ? `https://www.google.com/maps/dir/?api=1&destination=${s.latitude},${s.longitude}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name + " " + s.location)}`;
+                      return (
+                        <div key={s.id} className="border rounded-lg p-3 flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{s.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {s.type} · {s.location}
+                              {s.distance && s.distance !== Infinity && ` · ${s.distance.toFixed(1)} km`}
+                            </p>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            {s.phone && (
+                              <Button size="sm" variant="outline" asChild>
+                                <a href={`tel:${s.phone}`}><Phone className="h-3 w-3" /></a>
+                              </Button>
+                            )}
+                            <Button size="sm" variant="outline" asChild>
+                              <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
+                                <Navigation className="h-3 w-3" />
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </>
