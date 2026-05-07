@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import AgentTaskRunner from "@/components/agents/AgentTaskRunner";
 import { CometAgentDashboard } from "@/components/CometAgent";
 import AquaHealthAgent from "@/components/agents/AquaHealthAgent";
+import MultiToolAgent from "@/components/agents/MultiToolAgent";
+import FishRatesCard from "@/components/FishRatesCard";
 
 const AGENTS = [
   {
@@ -157,7 +159,8 @@ const AIAgents = () => {
         </p>
 
         <AquaHealthAgent />
-
+        <MultiToolAgent />
+        <FishRatesCard />
         <CometAgentDashboard />
 
 
