@@ -9,23 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { QRCodeSVG } from "qrcode.react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import {
   Activity, AlertTriangle, Camera, Loader2, MapPin, Pill, Stethoscope,
   Store as StoreIcon, Phone, MessageCircle, CalendarPlus, Save, Share2,
-  ShieldAlert, History, Trash2,
+  ShieldAlert, History, Trash2, Navigation,
 } from "lucide-react";
-
-// --- Leaflet default-icon fix (Vite) ---
-const DefaultIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41], iconAnchor: [12, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
 
 // --- Types ---
 interface Diagnosis {
