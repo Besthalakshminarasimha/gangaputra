@@ -146,7 +146,7 @@ const MultiToolAgent = () => {
 
         {output && (output.markdown || output.summary || output.results) && (
           <div className="mt-3 border-t pt-3 text-sm space-y-2">
-            {output.summary && <div className="bg-muted/50 rounded p-3 whitespace-pre-wrap"><b>Summary:</b>\n{output.summary}</div>}
+            {output.summary && <div className="bg-muted/50 rounded p-3 whitespace-pre-wrap"><b>Summary:</b>{"\n"}{output.summary}</div>}
             {output.results && (
               <div className="space-y-1">
                 {(Array.isArray(output.results) ? output.results : output.results?.web || []).slice(0, 5).map((r: any, i: number) => (
