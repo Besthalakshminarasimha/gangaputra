@@ -612,6 +612,9 @@ const Dashboard = () => {
         {/* Shrimp Rates - New Pan-India Component */}
         <ShrimpRatesCard />
 
+        {/* Daily Fish Rates */}
+        <FishRatesCard />
+
         {/* Price History Chart */}
         <PriceHistoryChart />
 
