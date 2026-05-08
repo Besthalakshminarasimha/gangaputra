@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import ShrimpRatesCard from "@/components/ShrimpRatesCard";
+import FishRatesCard from "@/components/FishRatesCard";
 import TradeSection from "@/components/TradeSection";
 import MyTradeRequests from "@/components/MyTradeRequests";
 import DiseasesSection from "@/components/content/DiseasesSection";
@@ -611,6 +612,9 @@ const Dashboard = () => {
 
         {/* Shrimp Rates - New Pan-India Component */}
         <ShrimpRatesCard />
+
+        {/* Daily Fish Rates */}
+        <FishRatesCard />
 
         {/* Price History Chart */}
         <PriceHistoryChart />
