@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.comet-browser-agent]
 verify_jwt = false
+
+[functions.comet-autopilot]
+verify_jwt = false
