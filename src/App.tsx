@@ -10,6 +10,7 @@ import PageTransition from "./components/PageTransition";
 import { PageSkeleton } from "./components/LoadingSkeletons";
 import BottomNavigation from "./components/BottomNavigation";
 import AIAssistant from "./components/AIAssistant";
+import { AutopilotProvider } from "./components/CometAgent/AutopilotProvider";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 // Lazy load pages for better performance
@@ -79,11 +80,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <KeyboardShortcutsProvider>
-          <div className="relative">
-            <AnimatedRoutes />
-            <BottomNavigation />
-            <AIAssistant />
-          </div>
+          <AutopilotProvider>
+            <div className="relative">
+              <AnimatedRoutes />
+              <BottomNavigation />
+              <AIAssistant />
+            </div>
+          </AutopilotProvider>
         </KeyboardShortcutsProvider>
       </BrowserRouter>
     </TooltipProvider>
