@@ -8,16 +8,76 @@ const corsHeaders = {
 
 interface RequestBody {
   objective: string;
-  taskId?: string;
+}
+
+interface SearchResult {
+  url: string;
+  title?: string;
+  description?: string;
+  markdown?: string;
+}
+
+async function firecrawlSearch(query: string, apiKey: string): Promise<SearchResult[]> {
+  const res = await fetch("https://api.firecrawl.dev/v1/search", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query,
+      limit: 6,
+      scrapeOptions: { formats: ["markdown"], onlyMainContent: true },
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`Firecrawl search failed [${res.status}]: ${t.slice(0, 300)}`);
+  }
+  const json = await res.json();
+  return (json?.data ?? []) as SearchResult[];
+}
+
+async function synthesize(objective: string, results: SearchResult[], lovableKey: string): Promise<string> {
+  const sources = results
+    .map((r, i) => {
+      const body = (r.markdown ?? r.description ?? "").slice(0, 3500);
+      return `### Source [${i + 1}] ${r.title ?? r.url}\nURL: ${r.url}\n\n${body}`;
+    })
+    .join("\n\n---\n\n");
+
+  const prompt = `Objective: ${objective}\n\nYou browsed the web and collected the sources below. Produce a comprehensive, actionable report for an Indian aquaculture farmer.\n\nFormatting:\n- Markdown with clear ## headings\n- Bullet points with concrete numbers, prices, names, dates, contacts\n- A short \"Key Takeaways\" section at the top\n- A \"Recommended Actions\" section at the end\n- Cite sources inline like [1], [2] matching their numbers below\n\nSOURCES:\n${sources}`;
+
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${lovableKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are the Comet Browser Agent for Gangaputra, an aquaculture platform. You synthesize live web research into precise, actionable reports for Indian shrimp/fish farmers.",
+        },
+        { role: "user", content: prompt },
+      ],
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`Lovable AI failed [${res.status}]: ${t.slice(0, 300)}`);
+  }
+  const data = await res.json();
+  return data?.choices?.[0]?.message?.content ?? "(empty response)";
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -25,7 +85,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
     const token = authHeader.replace("Bearer ", "");
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -34,118 +93,57 @@ Deno.serve(async (req) => {
     );
     const { data: userData, error: userError } = await supabase.auth.getUser(token);
     if (userError || !userData?.user) {
-      console.error("Auth failed:", userError?.message);
-      return new Response(JSON.stringify({ error: "Unauthorized — please sign in to use the Comet agent" }), {
+      return new Response(JSON.stringify({ error: "Unauthorized — please sign in" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const userId = userData.user.id;
 
-    // Validate input
     const body = (await req.json()) as RequestBody;
-    if (
-      !body.objective || typeof body.objective !== "string" ||
-      body.objective.trim().length < 3 || body.objective.length > 1000
-    ) {
+    if (!body.objective || typeof body.objective !== "string" ||
+        body.objective.trim().length < 3 || body.objective.length > 1000) {
       return new Response(
-        JSON.stringify({
-          error: "Objective must be a string between 3 and 1000 characters",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        JSON.stringify({ error: "Objective must be a string between 3 and 1000 characters" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const COMET_API_KEY = Deno.env.get("COMET_API_KEY");
-    if (!COMET_API_KEY) {
+    const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!FIRECRAWL_API_KEY || !LOVABLE_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "COMET_API_KEY is not configured" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        JSON.stringify({ error: "Browser agent not configured (missing keys)" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Create task record (status: running)
     const { data: task, error: insertError } = await supabase
       .from("comet_agent_tasks")
-      .insert({
-        user_id: userId,
-        objective: body.objective,
-        status: "running",
-      })
+      .insert({ user_id: userId, objective: body.objective, status: "running" })
       .select()
       .single();
 
     if (insertError || !task) {
-      console.error("Failed to create task:", insertError);
-      return new Response(
-        JSON.stringify({ error: "Failed to create task record" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return new Response(JSON.stringify({ error: "Failed to create task record" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Call Perplexity (Comet) API
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 55000);
-
     try {
-      const pplxRes = await fetch("https://api.perplexity.ai/chat/completions", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          Authorization: `Bearer ${COMET_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "sonar",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are the Comet Browser Agent for Gangaputra, an aquaculture platform for Indian shrimp/fish farmers. Browse the web and return concise, actionable, well-structured findings. Use markdown headings, bullet points, and include specific numbers, prices, contacts, and dates when relevant.",
-            },
-            { role: "user", content: body.objective },
-          ],
-        }),
-      });
-      clearTimeout(timeout);
+      console.log(`[comet] searching: ${body.objective}`);
+      const results = await firecrawlSearch(body.objective, FIRECRAWL_API_KEY);
+      console.log(`[comet] got ${results.length} results, synthesizing...`);
 
-      if (!pplxRes.ok) {
-        const errText = await pplxRes.text();
-        await supabase
-          .from("comet_agent_tasks")
-          .update({
-            status: "failed",
-            error: `Comet API error [${pplxRes.status}]: ${errText.slice(0, 500)}`,
-          })
-          .eq("id", task.id);
-        return new Response(
-          JSON.stringify({
-            error: "Comet API request failed",
-            status: pplxRes.status,
-            taskId: task.id,
-          }),
-          {
-            status: 502,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+      const citations = results.map((r) => r.url).filter(Boolean);
+      let content: string;
+      if (results.length === 0) {
+        content = `No live web results were found for: **${body.objective}**.\n\nTry a more specific query.`;
+      } else {
+        content = await synthesize(body.objective, results, LOVABLE_API_KEY);
       }
 
-      const data = await pplxRes.json();
-      const content: string = data?.choices?.[0]?.message?.content ?? "";
-      const citations: string[] = data?.citations ?? data?.search_results?.map((r: any) => r.url) ?? [];
-
-      await supabase
-        .from("comet_agent_tasks")
+      await supabase.from("comet_agent_tasks")
         .update({ status: "completed", result: content, citations })
         .eq("id", task.id);
 
@@ -157,32 +155,23 @@ Deno.serve(async (req) => {
           citations,
           status: "completed",
         }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     } catch (err) {
-      clearTimeout(timeout);
       const message = err instanceof Error ? err.message : "Unknown error";
-      await supabase
-        .from("comet_agent_tasks")
+      console.error("[comet] error:", message);
+      await supabase.from("comet_agent_tasks")
         .update({ status: "failed", error: message })
         .eq("id", task.id);
-      return new Response(
-        JSON.stringify({ error: message, taskId: task.id }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return new Response(JSON.stringify({ error: message, taskId: task.id }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("comet-browser-agent error:", message);
     return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
