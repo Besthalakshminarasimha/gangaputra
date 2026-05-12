@@ -127,6 +127,84 @@ export type Database = {
           },
         ]
       }
+      autopilot_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error: string | null
+          id: string
+          logs: Json
+          mode: string
+          objective: string
+          plan: Json
+          started_at: string
+          status: string
+          summary: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          logs?: Json
+          mode?: string
+          objective: string
+          plan?: Json
+          started_at?: string
+          status?: string
+          summary?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          logs?: Json
+          mode?: string
+          objective?: string
+          plan?: Json
+          started_at?: string
+          status?: string
+          summary?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      autopilot_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          objective: string
+          plan: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          objective: string
+          plan?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          objective?: string
+          plan?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       carousel_analytics: {
         Row: {
           created_at: string
