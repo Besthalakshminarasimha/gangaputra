@@ -155,5 +155,8 @@ export default function CometAgentDashboard() {
         </p>
       </CardContent>
     </Card>
+    <AutopilotTemplates />
+    <AutopilotRunHistory />
+    </div>
   );
 }
