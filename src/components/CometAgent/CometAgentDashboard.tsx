@@ -38,9 +38,10 @@ export default function CometAgentDashboard() {
     await ap.start(obj);
   };
 
-  const busy = ap.state === "planning" || ap.state === "running" || ap.state === "awaiting" || ap.state === "paused";
+  const busy = ap.state === "planning" || ap.state === "running" || ap.state === "awaiting" || ap.state === "confirm" || ap.state === "paused";
 
   return (
+    <div className="space-y-4">
     <Card className="border-orange-500/30 bg-gradient-to-br from-background to-orange-500/5">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
