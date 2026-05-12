@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Globe, Sparkles, ShieldCheck, AlertTriangle, LogIn, Play, Loader2 } from "lucide-react";
+import AutopilotTemplates from "./AutopilotTemplates";
+import AutopilotRunHistory from "./AutopilotRunHistory";
 
 const SUGGESTIONS = [
   "Open the store and add the first product to my cart",
