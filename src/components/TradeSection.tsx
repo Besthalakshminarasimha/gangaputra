@@ -143,7 +143,7 @@ const TradeSection = () => {
         .from('profiles')
         .select('full_name, email')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       const { error } = await supabase.from('sell_crop_requests').insert({
         user_id: user.id,
