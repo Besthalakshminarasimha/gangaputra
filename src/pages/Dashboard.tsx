@@ -186,18 +186,34 @@ const Dashboard = () => {
   
   const fetchProfile = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
-    
+      .maybeSingle();
+
     if (error) {
       console.error('Error fetching profile:', error);
-    } else {
-      setProfile(data);
+      return;
     }
+
+    if (!data) {
+      // Backfill missing profile row on the fly
+      const { data: created } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email ?? '',
+          full_name: (user.user_metadata as any)?.full_name ?? (user.user_metadata as any)?.name ?? '',
+        })
+        .select('*')
+        .maybeSingle();
+      setProfile(created);
+      return;
+    }
+
+    setProfile(data);
   };
 
   const fetchFarms = async () => {
