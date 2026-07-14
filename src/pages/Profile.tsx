@@ -35,20 +35,35 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
-    
+      .maybeSingle();
+
     if (error) {
       console.error('Error fetching profile:', error);
-    } else {
-      setProfile(data);
-      setFullName(data?.full_name || "");
-      setEmail(user.email || "");
+      return;
     }
+
+    let row = data;
+    if (!row) {
+      const { data: created } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email ?? '',
+          full_name: (user.user_metadata as any)?.full_name ?? (user.user_metadata as any)?.name ?? '',
+        })
+        .select('*')
+        .maybeSingle();
+      row = created;
+    }
+
+    setProfile(row);
+    setFullName(row?.full_name || "");
+    setEmail(user.email || "");
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
