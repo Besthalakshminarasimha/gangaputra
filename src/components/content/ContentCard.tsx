@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { Volume2, VolumeX, Loader2, ChevronRight, Bookmark, BookmarkCheck } from "lucide-react";
+import { speakWithBrowser } from "@/lib/speech";
 
 interface ContentCardProps {
   id: string;
@@ -79,6 +80,8 @@ const ContentCard = ({
         const audio = new Audio(url);
         audio.onended = () => setIsPlaying(false);
         audio.play();
+      } else {
+        speakWithBrowser(textToRead, selectedLanguage, () => setIsPlaying(false));
       }
     } catch (error) {
       console.error('TTS error:', error);

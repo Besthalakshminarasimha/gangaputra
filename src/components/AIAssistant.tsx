@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { speakWithBrowser } from "@/lib/speech";
 
 interface Message {
   id: string;
@@ -144,7 +145,7 @@ const AIAssistant = () => {
         audio.onerror = () => setIsSpeaking(false);
         await audio.play();
       } else {
-        setIsSpeaking(false);
+        speakWithBrowser(text.slice(0, 500), LANG_CONFIG[language].ttsCode, () => setIsSpeaking(false));
       }
     } catch (err) {
       console.error("TTS error:", err);

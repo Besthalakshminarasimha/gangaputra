@@ -13,6 +13,7 @@ import { Camera, AlertTriangle, Loader2, Brain, Stethoscope, Save, History, Tras
 import { format } from "date-fns";
 import MedicineSuggestions from "./MedicineSuggestions";
 import DiagnosisPdfExport from "./DiagnosisPdfExport";
+import { speakWithBrowser } from "@/lib/speech";
 
 interface Diagnosis {
   disease: string;
@@ -222,6 +223,8 @@ const AIDiseasePredictor = () => {
         audio.onerror = () => { setIsSpeaking(false); setCurrentAudio(null); };
         setCurrentAudio(audio);
         audio.play();
+      } else {
+        speakWithBrowser(text, ttsLang, () => setIsSpeaking(false));
       }
     } catch (err) {
       console.error('TTS error:', err);

@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Bookmark, Bug, Newspaper, BookOpen, Trash2, Volume2, Loader2, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
+import { speakWithBrowser } from "@/lib/speech";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
@@ -119,6 +120,8 @@ const BookmarksSection = () => {
           const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
           audio.onended = () => setPlayingId(null);
           await audio.play();
+        } else {
+          speakWithBrowser(text, language, () => setPlayingId(null));
         }
       }
     } catch (error) {
