@@ -29,8 +29,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     const apiKey = Deno.env.get("GOOGLE_CLOUD_TTS_API_KEY");
 
+    // No key configured -> tell the client to use the browser voice instead of failing.
     if (!apiKey) {
-      throw new Error("Google Cloud TTS API key not configured");
+      return new Response(
+        JSON.stringify({ fallback: true, reason: "tts_not_configured", text, language }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const voice = voiceConfig[language] || voiceConfig.en;
@@ -59,9 +63,13 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error("Google TTS error:", error);
-      throw new Error(error.error?.message || "Failed to generate speech");
+      const error = await response.text();
+      console.error("Google TTS error:", response.status, error);
+      // Invalid/expired key or quota issue -> graceful browser fallback.
+      return new Response(
+        JSON.stringify({ fallback: true, reason: "tts_provider_error", text, language }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const result = await response.json();
@@ -76,10 +84,11 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in TTS:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ fallback: true, reason: "tts_exception" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 };
+
 
 serve(handler);
