@@ -1735,6 +1735,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_shared_health_report: {
+        Args: { _token: string }
+        Returns: {
+          created_at: string
+          diagnoses: Json
+          doctors: Json
+          id: string
+          image_url: string
+          medicines: Json
+          symptoms: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
