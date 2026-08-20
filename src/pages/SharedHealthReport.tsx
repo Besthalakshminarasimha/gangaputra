@@ -13,12 +13,8 @@ const SharedHealthReport = () => {
   useEffect(() => {
     if (!token) return;
     (async () => {
-      const { data } = await supabase
-        .from("health_reports")
-        .select("*")
-        .eq("share_token", token)
-        .maybeSingle();
-      setReport(data);
+      const { data } = await supabase.rpc("get_shared_health_report", { _token: token });
+      setReport(Array.isArray(data) ? data[0] ?? null : data);
       setLoading(false);
     })();
   }, [token]);
