@@ -8,6 +8,7 @@ import { useBookmarks } from "@/hooks/useBookmarks";
 import { Loader2, BookOpen, Download, Volume2, VolumeX, Bookmark, BookmarkCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { speakWithBrowser } from "@/lib/speech";
 
 interface Magazine {
   id: string;
@@ -85,6 +86,8 @@ const MagazinesSection = () => {
         const audio = new Audio(url);
         audio.onended = () => setIsPlaying(false);
         audio.play();
+      } else {
+        speakWithBrowser(textToRead, selectedLanguage, () => setIsPlaying(false));
       }
     } catch (error) {
       console.error('TTS error:', error);
