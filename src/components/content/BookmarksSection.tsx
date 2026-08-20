@@ -7,8 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Bookmark, Bug, Newspaper, BookOpen, Trash2, Volume2, Loader2, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
 import { speakWithBrowser } from "@/lib/speech";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
