@@ -62,8 +62,10 @@ const AdminBankLoans = () => {
   const [showAppDialog, setShowAppDialog] = useState(false);
   const [selectedApp, setSelectedApp] = useState<LoanApplication | null>(null);
   const [editingBank, setEditingBank] = useState<PartnerBank | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [bankForm, setBankForm] = useState({
     bank_name: "",
+    logo_url: "",
     interest_rate_min: "",
     interest_rate_max: "",
     max_loan_amount: "",
@@ -74,6 +76,34 @@ const AdminBankLoans = () => {
     contact_phone: "",
     requirements: "",
   });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please choose an image file", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Logo must be under 2MB", variant: "destructive" });
+      return;
+    }
+
+    setUploadingLogo(true);
+    const ext = file.name.split(".").pop();
+    const fileName = `bank-logos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("content").upload(fileName, file);
+    if (uploadError) {
+      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+      setUploadingLogo(false);
+      return;
+    }
+    const { data: { publicUrl } } = supabase.storage.from("content").getPublicUrl(fileName);
+    setBankForm(p => ({ ...p, logo_url: publicUrl }));
+    setUploadingLogo(false);
+    toast({ title: "Logo uploaded" });
+  };
+
 
   useEffect(() => {
     fetchBanks();
@@ -93,6 +123,7 @@ const AdminBankLoans = () => {
   const handleSaveBank = async () => {
     const payload = {
       bank_name: bankForm.bank_name,
+      logo_url: bankForm.logo_url || null,
       interest_rate_min: bankForm.interest_rate_min ? Number(bankForm.interest_rate_min) : null,
       interest_rate_max: bankForm.interest_rate_max ? Number(bankForm.interest_rate_max) : null,
       max_loan_amount: bankForm.max_loan_amount ? Number(bankForm.max_loan_amount) : null,
@@ -120,13 +151,14 @@ const AdminBankLoans = () => {
   };
 
   const resetBankForm = () => {
-    setBankForm({ bank_name: "", interest_rate_min: "", interest_rate_max: "", max_loan_amount: "", min_loan_amount: "50000", loan_types: "", description: "", contact_email: "", contact_phone: "", requirements: "" });
+    setBankForm({ bank_name: "", logo_url: "", interest_rate_min: "", interest_rate_max: "", max_loan_amount: "", min_loan_amount: "50000", loan_types: "", description: "", contact_email: "", contact_phone: "", requirements: "" });
   };
 
   const handleEditBank = (bank: PartnerBank) => {
     setEditingBank(bank);
     setBankForm({
       bank_name: bank.bank_name,
+      logo_url: bank.logo_url || "",
       interest_rate_min: bank.interest_rate_min?.toString() || "",
       interest_rate_max: bank.interest_rate_max?.toString() || "",
       max_loan_amount: bank.max_loan_amount?.toString() || "",
@@ -201,7 +233,11 @@ const AdminBankLoans = () => {
             <Card key={bank.id}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
-                  <div className="space-y-1">
+                  <div className="flex items-start gap-3">
+                    {bank.logo_url && (
+                      <img src={bank.logo_url} alt={`${bank.bank_name} logo`} className="h-12 w-12 rounded-md border bg-background object-contain p-1 shrink-0" loading="lazy" />
+                    )}
+                    <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold">{bank.bank_name}</h4>
                       <Badge variant={bank.is_active ? "default" : "secondary"}>{bank.is_active ? "Active" : "Inactive"}</Badge>
@@ -213,6 +249,7 @@ const AdminBankLoans = () => {
                         {bank.loan_types.map((t, i) => <Badge key={i} variant="outline" className="text-xs">{t}</Badge>)}
                       </div>
                     )}
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => handleToggleBank(bank.id, bank.is_active)}>
@@ -260,6 +297,23 @@ const AdminBankLoans = () => {
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editingBank ? "Edit Bank" : "Add Partner Bank"}</DialogTitle></DialogHeader>
           <div className="space-y-3">
+            <div>
+              <Label>Bank Logo</Label>
+              <div className="flex items-center gap-3 mt-1">
+                <div className="h-14 w-14 shrink-0 rounded-md border bg-muted flex items-center justify-center overflow-hidden">
+                  {bankForm.logo_url
+                    ? <img src={bankForm.logo_url} alt="Bank logo preview" className="h-full w-full object-contain p-1" />
+                    : <Building2 className="h-6 w-6 text-muted-foreground" />}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <Input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                  <p className="text-xs text-muted-foreground">{uploadingLogo ? "Uploading..." : "PNG/JPG, max 2MB"}</p>
+                </div>
+                {bankForm.logo_url && (
+                  <Button size="sm" variant="ghost" onClick={() => setBankForm(p => ({ ...p, logo_url: "" }))}>Remove</Button>
+                )}
+              </div>
+            </div>
             <div><Label>Bank Name *</Label><Input value={bankForm.bank_name} onChange={e => setBankForm(p => ({ ...p, bank_name: e.target.value }))} /></div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Min Interest Rate (%)</Label><Input type="number" value={bankForm.interest_rate_min} onChange={e => setBankForm(p => ({ ...p, interest_rate_min: e.target.value }))} /></div>

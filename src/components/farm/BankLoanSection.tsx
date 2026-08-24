@@ -14,6 +14,7 @@ import { Landmark, Building2, ChevronRight, FileText, Clock, Calculator, Upload,
 interface PartnerBank {
   id: string;
   bank_name: string;
+  logo_url: string | null;
   interest_rate_min: number | null;
   interest_rate_max: number | null;
   max_loan_amount: number | null;
@@ -236,7 +237,12 @@ const BankLoanSection = () => {
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-1 flex-1">
-                  <h4 className="font-bold text-lg">{bank.bank_name}</h4>
+                  <div className="flex items-center gap-3">
+                    {bank.logo_url && (
+                      <img src={bank.logo_url} alt={`${bank.bank_name} logo`} className="h-12 w-12 rounded-md border bg-background object-contain p-1 shrink-0" loading="lazy" />
+                    )}
+                    <h4 className="font-bold text-lg">{bank.bank_name}</h4>
+                  </div>
                   {bank.interest_rate_min && (
                     <p className="text-sm text-muted-foreground">
                       Interest Rate: <span className="text-primary font-medium">{bank.interest_rate_min}% - {bank.interest_rate_max}%</span>
