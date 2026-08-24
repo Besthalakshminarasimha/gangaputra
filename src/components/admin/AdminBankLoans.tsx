@@ -62,8 +62,10 @@ const AdminBankLoans = () => {
   const [showAppDialog, setShowAppDialog] = useState(false);
   const [selectedApp, setSelectedApp] = useState<LoanApplication | null>(null);
   const [editingBank, setEditingBank] = useState<PartnerBank | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [bankForm, setBankForm] = useState({
     bank_name: "",
+    logo_url: "",
     interest_rate_min: "",
     interest_rate_max: "",
     max_loan_amount: "",
@@ -74,6 +76,34 @@ const AdminBankLoans = () => {
     contact_phone: "",
     requirements: "",
   });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please choose an image file", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Logo must be under 2MB", variant: "destructive" });
+      return;
+    }
+
+    setUploadingLogo(true);
+    const ext = file.name.split(".").pop();
+    const fileName = `bank-logos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("content").upload(fileName, file);
+    if (uploadError) {
+      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+      setUploadingLogo(false);
+      return;
+    }
+    const { data: { publicUrl } } = supabase.storage.from("content").getPublicUrl(fileName);
+    setBankForm(p => ({ ...p, logo_url: publicUrl }));
+    setUploadingLogo(false);
+    toast({ title: "Logo uploaded" });
+  };
+
 
   useEffect(() => {
     fetchBanks();
