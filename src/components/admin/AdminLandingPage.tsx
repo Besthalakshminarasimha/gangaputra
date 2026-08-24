@@ -35,11 +35,11 @@ const AdminLandingPage = () => {
     const { error } = await supabase
       .from("site_content")
       .upsert(
-        {
+        [{
           key: LANDING_CONTENT_KEY,
           value: form as unknown as Record<string, unknown>,
-          updated_by: user?.id ?? null,
-        },
+          updated_by: user?.id,
+        }],
         { onConflict: "key" },
       );
     setSaving(false);
