@@ -277,12 +277,11 @@ const AdminBankLoans = () => {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    {bank.logo_url && (
-                      <div className="h-12 w-12 rounded-md border bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-                        {bank.logo_url ? (
-                          <img src={withCacheVersion(bank.logo_url, bank.created_at)} alt={`${bank.bank_name} logo`} className="h-full w-full object-contain p-1" loading="lazy" />
-                        ) : <Building2 className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}
-                      </div>
+                    <div className="h-12 w-12 rounded-md border bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                      {bank.logo_url ? (
+                        <img src={withCacheVersion(bank.logo_url, bank.created_at)} alt={`${bank.bank_name} logo`} className="h-full w-full object-contain p-1" loading="lazy" />
+                      ) : <Building2 className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}
+                    </div>
                     <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold">{bank.bank_name}</h4>
