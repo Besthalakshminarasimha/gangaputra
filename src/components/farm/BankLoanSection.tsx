@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Landmark, Building2, ChevronRight, FileText, Clock, Calculator, Upload, X, Loader2 } from "lucide-react";
+import { withCacheVersion } from "@/lib/imageProcessing";
 
 interface PartnerBank {
   id: string;
@@ -238,9 +239,11 @@ const BankLoanSection = () => {
               <div className="flex items-start justify-between">
                 <div className="space-y-1 flex-1">
                   <div className="flex items-center gap-3">
-                    {bank.logo_url && (
-                      <img src={bank.logo_url} alt={`${bank.bank_name} logo`} className="h-12 w-12 rounded-md border bg-background object-contain p-1 shrink-0" loading="lazy" />
-                    )}
+                    <div className="h-12 w-12 rounded-md border bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                      {bank.logo_url ? (
+                        <img src={withCacheVersion(bank.logo_url, bank.id)} alt={`${bank.bank_name} logo`} className="h-full w-full object-contain p-1" loading="lazy" />
+                      ) : <Building2 className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}
+                    </div>
                     <h4 className="font-bold text-lg">{bank.bank_name}</h4>
                   </div>
                   {bank.interest_rate_min && (
