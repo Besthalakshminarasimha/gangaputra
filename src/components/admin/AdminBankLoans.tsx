@@ -115,18 +115,20 @@ const AdminBankLoans = () => {
     if (!logoFile) return;
     setUploadingLogo(true);
     try {
+      const isSvg = logoFile.type === "image/svg+xml";
       const crop = logoCrop ?? { x: 0, y: 0, size: 1 };
-      const processed = await cropAndResizeImage(logoFile, crop);
-      const fileName = `bank-logos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
+      const processed = isSvg ? logoFile : await cropAndResizeImage(logoFile, crop);
+      const extension = isSvg ? "svg" : "png";
+      const fileName = `bank-logos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
       const { error: uploadError } = await supabase.storage.from("content").upload(fileName, processed, {
-        contentType: "image/png",
+        contentType: isSvg ? "image/svg+xml" : "image/png",
         upsert: false,
         cacheControl: "31536000",
       });
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from("content").getPublicUrl(fileName);
       setBankForm((p) => ({ ...p, logo_url: withCacheVersion(publicUrl, Date.now()) }));
-      setCropDialogOpen(false);
+      clearLogoSelection();
       toast({ title: "Logo ready", description: "The cropped logo will be saved with this bank." });
     } catch (error) {
       toast({
