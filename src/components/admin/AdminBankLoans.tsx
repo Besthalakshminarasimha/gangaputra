@@ -6,11 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Trash2, Edit, Landmark, Eye, Building2 } from "lucide-react";
+import { Plus, Trash2, Edit, Landmark, Eye, Building2, Crop, Loader2 } from "lucide-react";
+import {
+  centeredSquareCrop,
+  cropAndResizeImage,
+  validateLogoFile,
+  withCacheVersion,
+  type CropRect,
+} from "@/lib/imageProcessing";
 
 interface PartnerBank {
   id: string;
@@ -63,6 +69,10 @@ const AdminBankLoans = () => {
   const [selectedApp, setSelectedApp] = useState<LoanApplication | null>(null);
   const [editingBank, setEditingBank] = useState<PartnerBank | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState("");
+  const [logoCrop, setLogoCrop] = useState<CropRect | null>(null);
   const [bankForm, setBankForm] = useState({
     bank_name: "",
     logo_url: "",
@@ -80,28 +90,61 @@ const AdminBankLoans = () => {
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Invalid file", description: "Please choose an image file", variant: "destructive" });
+    const validation = await validateLogoFile(file);
+    if (!validation.ok) {
+      toast({ title: "Logo not accepted", description: validation.error, variant: "destructive" });
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Logo must be under 2MB", variant: "destructive" });
-      return;
+    if (validation.warning) {
+      toast({ title: "Crop recommended", description: validation.warning });
     }
 
+    const previewUrl = URL.createObjectURL(file);
+    setLogoFile(file);
+    setLogoPreviewUrl(previewUrl);
+    setLogoCrop(
+      validation.width && validation.height
+        ? centeredSquareCrop(validation.width, validation.height)
+        : null,
+    );
+    setCropDialogOpen(true);
+    e.target.value = "";
+  };
+
+  const handleCropAndUpload = async () => {
+    if (!logoFile) return;
     setUploadingLogo(true);
-    const ext = file.name.split(".").pop();
-    const fileName = `bank-logos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("content").upload(fileName, file);
-    if (uploadError) {
-      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+    try {
+      const crop = logoCrop ?? { x: 0, y: 0, size: 1 };
+      const processed = await cropAndResizeImage(logoFile, crop);
+      const fileName = `bank-logos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
+      const { error: uploadError } = await supabase.storage.from("content").upload(fileName, processed, {
+        contentType: "image/png",
+        upsert: false,
+        cacheControl: "31536000",
+      });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from("content").getPublicUrl(fileName);
+      setBankForm((p) => ({ ...p, logo_url: withCacheVersion(publicUrl, Date.now()) }));
+      setCropDialogOpen(false);
+      toast({ title: "Logo ready", description: "The cropped logo will be saved with this bank." });
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Could not process the logo.",
+        variant: "destructive",
+      });
+    } finally {
       setUploadingLogo(false);
-      return;
     }
-    const { data: { publicUrl } } = supabase.storage.from("content").getPublicUrl(fileName);
-    setBankForm(p => ({ ...p, logo_url: publicUrl }));
-    setUploadingLogo(false);
-    toast({ title: "Logo uploaded" });
+  };
+
+  const clearLogoSelection = () => {
+    if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    setLogoFile(null);
+    setLogoPreviewUrl("");
+    setLogoCrop(null);
+    setCropDialogOpen(false);
   };
 
 
@@ -235,8 +278,11 @@ const AdminBankLoans = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     {bank.logo_url && (
-                      <img src={bank.logo_url} alt={`${bank.bank_name} logo`} className="h-12 w-12 rounded-md border bg-background object-contain p-1 shrink-0" loading="lazy" />
-                    )}
+                      <div className="h-12 w-12 rounded-md border bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                        {bank.logo_url ? (
+                          <img src={withCacheVersion(bank.logo_url, bank.created_at)} alt={`${bank.bank_name} logo`} className="h-full w-full object-contain p-1" loading="lazy" />
+                        ) : <Building2 className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}
+                      </div>
                     <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold">{bank.bank_name}</h4>
@@ -300,14 +346,14 @@ const AdminBankLoans = () => {
             <div>
               <Label>Bank Logo</Label>
               <div className="flex items-center gap-3 mt-1">
-                <div className="h-14 w-14 shrink-0 rounded-md border bg-muted flex items-center justify-center overflow-hidden">
+                  <div className="h-14 w-14 shrink-0 rounded-md border bg-muted flex items-center justify-center overflow-hidden">
                   {bankForm.logo_url
                     ? <img src={bankForm.logo_url} alt="Bank logo preview" className="h-full w-full object-contain p-1" />
                     : <Building2 className="h-6 w-6 text-muted-foreground" />}
                 </div>
                 <div className="flex-1 space-y-1">
-                  <Input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploadingLogo} />
-                  <p className="text-xs text-muted-foreground">{uploadingLogo ? "Uploading..." : "PNG/JPG, max 2MB"}</p>
+                   <Input type="file" accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                   <p className="text-xs text-muted-foreground">{uploadingLogo ? "Processing..." : "PNG, JPG, WEBP or SVG · under 2MB · square crop recommended"}</p>
                 </div>
                 {bankForm.logo_url && (
                   <Button size="sm" variant="ghost" onClick={() => setBankForm(p => ({ ...p, logo_url: "" }))}>Remove</Button>
@@ -331,6 +377,25 @@ const AdminBankLoans = () => {
             </div>
             <div><Label>Requirements</Label><Textarea placeholder="Documents needed, eligibility criteria..." value={bankForm.requirements} onChange={e => setBankForm(p => ({ ...p, requirements: e.target.value }))} /></div>
             <Button onClick={handleSaveBank} className="w-full" disabled={!bankForm.bank_name}>{editingBank ? "Update Bank" : "Add Bank"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={cropDialogOpen} onOpenChange={(open) => !open && clearLogoSelection()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Fit bank logo</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Review the centered square crop before saving. This keeps every bank logo the same size across the site.</p>
+            <div className="mx-auto h-56 w-56 rounded-lg border bg-muted p-3 flex items-center justify-center overflow-hidden">
+              {logoPreviewUrl && <img src={logoPreviewUrl} alt="Selected bank logo crop preview" className="h-full w-full object-cover rounded-md" />}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={clearLogoSelection} disabled={uploadingLogo}>Cancel</Button>
+              <Button className="flex-1" onClick={handleCropAndUpload} disabled={uploadingLogo || !logoFile}>
+                {uploadingLogo ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Crop className="h-4 w-4 mr-1" />}
+                Use cropped logo
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
