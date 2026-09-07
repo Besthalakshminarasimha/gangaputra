@@ -9,6 +9,7 @@ import {
   ArrowRight, ChevronDown, Waves, Leaf, Shield, Globe, Smartphone,
   MessageCircle, FileText, MapPin, Thermometer
 } from "lucide-react";
+import { useLandingContent } from "@/lib/siteContent";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -168,6 +169,7 @@ const AnimatedLanguageName = () => {
 const Introduction = () => {
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
+  const { content } = useLandingContent();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -249,7 +251,7 @@ const Introduction = () => {
           >
             <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
               <Waves className="h-6 w-6 text-cyan-400" />
-              <span className="text-cyan-200 font-medium">Welcome to the Future of Aquaculture</span>
+               <span className="text-cyan-200 font-medium">{content.badge}</span>
             </div>
           </motion.div>
 
@@ -259,7 +261,7 @@ const Introduction = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight"
           >
-            GANGAPUTRA
+             {content.brandTitle}
             <AnimatedLanguageName />
           </motion.h1>
 
@@ -269,9 +271,7 @@ const Introduction = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-lg md:text-xl text-blue-100/80 max-w-2xl mx-auto mb-8"
           >
-            India's most comprehensive aquaculture management platform. 
-            AI-powered disease prediction, live market prices, bank loans, 
-            job portal, and smart farming tools — all in one app.
+             {content.description}
           </motion.p>
 
           <motion.div
@@ -285,7 +285,7 @@ const Introduction = () => {
               onClick={() => navigate("/auth")}
               className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-lg px-8 py-6 rounded-xl shadow-lg shadow-cyan-500/25"
             >
-              Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
+               {content.primaryCta} <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button
               size="lg"
@@ -293,7 +293,7 @@ const Introduction = () => {
               onClick={() => navigate("/auth")}
               className="border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6 rounded-xl"
             >
-              Login
+               {content.secondaryCta}
             </Button>
           </motion.div>
 
@@ -311,18 +311,17 @@ const Introduction = () => {
       {/* Stats Bar */}
       <AnimatedSection className="py-12 bg-muted/50">
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { label: "Active Farmers", value: "5,000+", icon: Users },
-            { label: "AI Diagnoses", value: "25,000+", icon: Stethoscope },
-            { label: "Market Locations", value: "50+", icon: TrendingUp },
-            { label: "Partner Banks", value: "4+", icon: Landmark },
-          ].map((stat, i) => (
+             {content.stats.map((stat, i) => {
+               const icons = [Users, Stethoscope, TrendingUp, Landmark];
+               const Icon = icons[i] ?? TrendingUp;
+               return (
             <motion.div key={i} variants={fadeUp} className="text-center">
-              <stat.icon className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <p className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>
+               <Icon className="h-8 w-8 mx-auto mb-2 text-primary" />
+               <p className="text-2xl md:text-3xl font-bold text-foreground">{stat.value.toLocaleString()}{stat.suffix}</p>
               <p className="text-sm text-muted-foreground">{stat.label}</p>
             </motion.div>
-          ))}
+               );
+             })}
         </div>
       </AnimatedSection>
 

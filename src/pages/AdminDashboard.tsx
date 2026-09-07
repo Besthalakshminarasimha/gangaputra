@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart, Fish, Pill, Stethoscope, CalendarCheck, Briefcase, ClipboardList, Landmark } from "lucide-react";
+import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart, Fish, Pill, Stethoscope, CalendarCheck, Briefcase, ClipboardList, Landmark, Home } from "lucide-react";
 import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
@@ -25,6 +25,7 @@ import AdminAppointments from "@/components/admin/AdminAppointments";
 import AdminJobProfiles from "@/components/admin/AdminJobProfiles";
 import AdminJobPostings from "@/components/admin/AdminJobPostings";
 import AdminBankLoans from "@/components/admin/AdminBankLoans";
+import AdminLandingPage from "@/components/admin/AdminLandingPage";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -159,6 +160,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="requests" className="space-y-4">
           <TabsList className="flex flex-wrap gap-1">
             <TabsTrigger value="requests"><Package className="h-4 w-4 mr-1" />Requests</TabsTrigger>
+            <TabsTrigger value="welcome"><Home className="h-4 w-4 mr-1" />Welcome Page</TabsTrigger>
             <TabsTrigger value="orders"><ShoppingCart className="h-4 w-4 mr-1" />Orders</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Users</TabsTrigger>
             <TabsTrigger value="hatcheries"><Fish className="h-4 w-4 mr-1" />Hatcheries</TabsTrigger>
@@ -180,6 +182,7 @@ const AdminDashboard = () => {
           </TabsList>
           
           <TabsContent value="requests"><AdminRequestsTable onUpdate={fetchStats} /></TabsContent>
+          <TabsContent value="welcome"><AdminLandingPage /></TabsContent>
           <TabsContent value="orders"><AdminOrders /></TabsContent>
           <TabsContent value="users"><AdminUsersTable /></TabsContent>
           <TabsContent value="hatcheries"><AdminHatcheries /></TabsContent>
