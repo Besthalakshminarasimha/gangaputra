@@ -37,7 +37,7 @@ const AdminLandingPage = () => {
       .upsert(
         [{
           key: LANDING_CONTENT_KEY,
-          value: form as unknown as Record<string, unknown>,
+          value: form as unknown as import("@/integrations/supabase/types").Json,
           updated_by: user?.id,
         }],
         { onConflict: "key" },
