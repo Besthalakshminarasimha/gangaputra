@@ -263,6 +263,9 @@ const Introduction = () => {
           >
              {content.brandTitle}
             <AnimatedLanguageName />
+            <span className="block text-3xl md:text-4xl font-medium text-white/90">
+              {content.titleLine1}<br />{content.titleLine2}
+            </span>
           </motion.h1>
 
           <motion.p
