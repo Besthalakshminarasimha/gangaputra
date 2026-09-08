@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect, useRef } from "react";
 import heroVideo from "@/assets/hero-video.mp4";
+import { useLandingContent } from "@/lib/siteContent";
 
 // Animated Counter Component
 const AnimatedCounter = ({ end, suffix = "", prefix = "", duration = 2000 }: { 
@@ -75,6 +76,7 @@ const HeroSection = () => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const { content } = useLandingContent();
 
   // Parallax scroll effect
   useEffect(() => {
@@ -106,12 +108,8 @@ const HeroSection = () => {
     }
   };
 
-  const stats = [
-    { value: 10000, label: "Active Farmers", icon: Users, suffix: "+" },
-    { value: 98, label: "Success Rate", icon: TrendingUp, suffix: "%" },
-    { value: 24, label: "Support", icon: ShieldCheck, suffix: "/7" },
-    { value: 50, label: "AI Features", icon: Award, suffix: "+" },
-  ];
+  const statIcons = [Users, TrendingUp, ShieldCheck, Award];
+  const featureIcons = [Droplets, Fish, Zap, BarChart3];
 
   return (
     <section ref={sectionRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -182,45 +180,46 @@ const HeroSection = () => {
           >
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-5 py-2.5 rounded-full mb-6 animate-fade-in border border-white/20">
               <Fish className="w-5 h-5 text-accent" />
-              <span className="text-white font-semibold text-sm tracking-wide">India's #1 Smart Aqua Farming Platform</span>
+               <span className="text-white font-semibold text-sm tracking-wide">{content.badge}</span>
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in">
-              <span className="text-gradient block mb-2">GANGAPUTRA</span>
-              <span className="text-3xl lg:text-5xl font-medium opacity-95">The Future of</span>
+               <span className="text-gradient block mb-2">{content.brandTitle}</span>
+               <span className="text-3xl lg:text-5xl font-medium opacity-95">{content.titleLine1}</span>
               <br />
-              <span className="text-3xl lg:text-5xl font-medium opacity-95">Aqua Farming</span>
+               <span className="text-3xl lg:text-5xl font-medium opacity-95">{content.titleLine2}</span>
             </h1>
             
             <p className="text-lg lg:text-xl text-white/90 mb-8 max-w-xl animate-fade-in leading-relaxed">
-              Transform your aquaculture business with <span className="font-semibold text-accent">real-time IoT monitoring</span>, 
-              <span className="font-semibold text-accent"> AI-powered disease detection</span>, live market prices, 
-              and a complete farm-to-market ecosystem.
+               {content.description}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in mb-10">
               <Button variant="hero" size="lg" className="group text-base px-8 py-6" onClick={handleGetStarted}>
-                {user ? "Go to Dashboard" : "Start Your Farm Journey"}
+                 {user ? "Go to Dashboard" : content.primaryCta}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button variant="sustainable" size="lg" className="text-base px-8 py-6" onClick={() => navigate("/aquapedia")}>
-                Explore Aquapedia
+                 {content.secondaryCta}
               </Button>
             </div>
 
             {/* Animated Trust Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
-              {stats.map((stat, index) => (
+               {content.stats.map((stat, index) => {
+                 const Icon = statIcons[index] ?? Award;
+                 return (
                 <div key={index} className="text-center lg:text-left">
                   <div className="flex items-center gap-2 justify-center lg:justify-start mb-1">
-                    <stat.icon className="w-4 h-4 text-accent" />
+                     <Icon className="w-4 h-4 text-accent" />
                     <span className="text-2xl font-bold text-white">
                       <AnimatedCounter end={stat.value} suffix={stat.suffix} duration={2000 + index * 200} />
                     </span>
                   </div>
                   <span className="text-sm text-white/70">{stat.label}</span>
                 </div>
-              ))}
+                 );
+               })}
             </div>
           </div>
 
@@ -332,21 +331,19 @@ const HeroSection = () => {
           className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-16 animate-fade-in"
           style={{ transform: `translateY(${scrollY * -0.05}px)` }}
         >
-          {[
-            { icon: Droplets, label: "Water Monitoring", value: "Real-time Sensors", description: "pH, DO, Temp & more" },
-            { icon: Fish, label: "Disease Detection", value: "AI-Powered", description: "95% accuracy rate" },
-            { icon: Zap, label: "Smart Automation", value: "IoT Control", description: "Aerators & feeders" },
-            { icon: BarChart3, label: "Market Prices", value: "Live Updates", description: "All major markets" }
-          ].map((feature, index) => (
+           {content.features.map((feature, index) => {
+             const Icon = featureIcons[index] ?? BarChart3;
+             return (
             <div key={index} className="glass-card text-center p-5 hover:bg-white/15 transition-all duration-300 group cursor-pointer">
               <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                <feature.icon className="w-6 h-6 text-accent" />
+                 <Icon className="w-6 h-6 text-accent" />
               </div>
               <div className="text-sm text-white/70 mb-1">{feature.label}</div>
               <div className="font-bold text-white text-lg">{feature.value}</div>
               <div className="text-xs text-white/60 mt-1">{feature.description}</div>
             </div>
-          ))}
+             );
+           })}
         </div>
       </div>
 
