@@ -345,6 +345,65 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_farm_logs: {
+        Row: {
+          created_at: string
+          feed_quantity: number | null
+          feed_type: string | null
+          feeding_time: string | null
+          id: string
+          log_date: string
+          mortality_count: number | null
+          notes: string | null
+          pond_id: string | null
+          pond_observation: string | null
+          symptoms: string | null
+          updated_at: string
+          user_id: string
+          weather_observation: string | null
+        }
+        Insert: {
+          created_at?: string
+          feed_quantity?: number | null
+          feed_type?: string | null
+          feeding_time?: string | null
+          id?: string
+          log_date?: string
+          mortality_count?: number | null
+          notes?: string | null
+          pond_id?: string | null
+          pond_observation?: string | null
+          symptoms?: string | null
+          updated_at?: string
+          user_id: string
+          weather_observation?: string | null
+        }
+        Update: {
+          created_at?: string
+          feed_quantity?: number | null
+          feed_type?: string | null
+          feeding_time?: string | null
+          id?: string
+          log_date?: string
+          mortality_count?: number | null
+          notes?: string | null
+          pond_id?: string | null
+          pond_observation?: string | null
+          symptoms?: string | null
+          updated_at?: string
+          user_id?: string
+          weather_observation?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_farm_logs_pond_id_fkey"
+            columns: ["pond_id"]
+            isOneToOne: false
+            referencedRelation: "ponds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_updates: {
         Row: {
           created_at: string
@@ -1308,6 +1367,62 @@ export type Database = {
         }
         Relationships: []
       }
+      ponds: {
+        Row: {
+          area_acres: number | null
+          created_at: string
+          depth_meters: number | null
+          farm_id: string
+          id: string
+          notes: string | null
+          pond_name: string
+          species: string | null
+          status: string
+          stocking_date: string | null
+          stocking_quantity: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area_acres?: number | null
+          created_at?: string
+          depth_meters?: number | null
+          farm_id: string
+          id?: string
+          notes?: string | null
+          pond_name: string
+          species?: string | null
+          status?: string
+          stocking_date?: string | null
+          stocking_quantity?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area_acres?: number | null
+          created_at?: string
+          depth_meters?: number | null
+          farm_id?: string
+          id?: string
+          notes?: string | null
+          pond_name?: string
+          species?: string | null
+          status?: string
+          stocking_date?: string | null
+          stocking_quantity?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ponds_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       powermon_devices: {
         Row: {
           capacity: number
@@ -1750,6 +1865,65 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      water_quality_logs: {
+        Row: {
+          ammonia: number | null
+          created_at: string
+          dissolved_oxygen: number | null
+          id: string
+          nitrite: number | null
+          notes: string | null
+          ph: number | null
+          pond_id: string
+          recorded_at: string
+          salinity: number | null
+          source: string
+          temperature: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ammonia?: number | null
+          created_at?: string
+          dissolved_oxygen?: number | null
+          id?: string
+          nitrite?: number | null
+          notes?: string | null
+          ph?: number | null
+          pond_id: string
+          recorded_at?: string
+          salinity?: number | null
+          source?: string
+          temperature?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ammonia?: number | null
+          created_at?: string
+          dissolved_oxygen?: number | null
+          id?: string
+          nitrite?: number | null
+          notes?: string | null
+          ph?: number | null
+          pond_id?: string
+          recorded_at?: string
+          salinity?: number | null
+          source?: string
+          temperature?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "water_quality_logs_pond_id_fkey"
+            columns: ["pond_id"]
+            isOneToOne: false
+            referencedRelation: "ponds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
