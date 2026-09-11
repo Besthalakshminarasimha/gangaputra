@@ -28,6 +28,7 @@ import ProfitLossLedger from "@/components/farm/ProfitLossLedger";
 import TraceabilityLog from "@/components/farm/TraceabilityLog";
 import DoctorDirectory from "@/components/farm/DoctorDirectory";
 import BankLoanSection from "@/components/farm/BankLoanSection";
+import FarmRecordsPanel from "@/components/farm/FarmRecordsPanel";
 
 const Farm = () => {
   const navigate = useNavigate();
@@ -149,6 +150,8 @@ const Farm = () => {
           </TabsList>
 
           <TabsContent value="tools" className="mt-4 space-y-6">
+            <FarmRecordsPanel />
+
             {/* Weather Forecast & Pond Advisory */}
             <WeatherForecast />
 
