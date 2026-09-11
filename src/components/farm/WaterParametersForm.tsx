@@ -143,7 +143,7 @@ const WaterParametersForm = () => {
             <div>
               <p className="font-medium">IoT Sensor Integration</p>
               <p className="text-sm text-muted-foreground">
-                 "Record measured water quality for a selected pond"
+                Record measured water quality for a selected pond
               </p>
             </div>
             <Button 
@@ -152,7 +152,7 @@ const WaterParametersForm = () => {
               onClick={sensorConnected ? handleDisconnectSensor : handleConnectSensor}
               disabled={connecting}
             >
-              {connecting ? "Checking..." : "Check Sensor"
+              {connecting ? "Checking..." : "Check Sensor"}
             </Button>
           </div>
           {!sensorConnected && (
