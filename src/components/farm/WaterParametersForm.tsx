@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Droplets, Thermometer, Gauge, Waves, Wifi, WifiOff, Save } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Droplets, Thermometer, Gauge, Waves, WifiOff, Save } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface WaterParameters {
   ph: string;
@@ -13,6 +16,8 @@ interface WaterParameters {
   dissolvedOxygen: string;
   temperature: string;
 }
+
+type Pond = { id: string; pond_name: string };
 
 const WaterParametersForm = () => {
   const [parameters, setParameters] = useState<WaterParameters>({
@@ -24,12 +29,31 @@ const WaterParametersForm = () => {
   const [sensorConnected, setSensorConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [ponds, setPonds] = useState<Pond[]>([]);
+  const [selectedPondId, setSelectedPondId] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const loadPonds = async () => {
+      const { data, error } = await supabase.from("ponds").select("id, pond_name").eq("user_id", user.id).order("created_at");
+      if (error) {
+        console.error("Unable to load ponds for water logging", error);
+        return;
+      }
+      const nextPonds = data ?? [];
+      setPonds(nextPonds);
+      setSelectedPondId((current) => current || nextPonds[0]?.id || "");
+    };
+    void loadPonds();
+  }, [user]);
 
   const handleChange = (field: keyof WaterParameters, value: string) => {
     setParameters(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const { ph, salinity, dissolvedOxygen, temperature } = parameters;
     
     if (!ph || !salinity || !dissolvedOxygen || !temperature) {
@@ -41,6 +65,28 @@ const WaterParametersForm = () => {
       return;
     }
 
+    if (!user || !selectedPondId) {
+      toast({ title: "Choose a pond", description: "Add and select a pond before recording water quality.", variant: "destructive" });
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase.from("water_quality_logs").insert({
+      pond_id: selectedPondId,
+      user_id: user.id,
+      ph: Number(ph),
+      salinity: Number(salinity),
+      dissolved_oxygen: Number(dissolvedOxygen),
+      temperature: Number(temperature),
+      source: "manual",
+    });
+    setSaving(false);
+
+    if (error) {
+      toast({ title: "Water reading could not be saved", description: error.message, variant: "destructive" });
+      return;
+    }
+
     toast({
       title: "Parameters Saved",
       description: "Water parameters have been recorded successfully",
@@ -48,26 +94,11 @@ const WaterParametersForm = () => {
   };
 
   const handleConnectSensor = () => {
-    setConnecting(true);
-    
-    // Simulate sensor connection
-    setTimeout(() => {
-      setSensorConnected(true);
-      setConnecting(false);
-      
-      // Simulate sensor data
-      setParameters({
-        ph: "7.8",
-        salinity: "18.5",
-        dissolvedOxygen: "5.2",
-        temperature: "28.5"
-      });
-      
-      toast({
-        title: "Sensor Connected",
-        description: "IoT sensor data synced successfully",
-      });
-    }, 2000);
+    toast({
+      title: "Sensor integration unavailable",
+      description: "No supported sensor connection is configured. Enter a measured reading manually.",
+      variant: "destructive",
+    });
   };
 
   const handleDisconnectSensor = () => {
@@ -99,18 +130,9 @@ const WaterParametersForm = () => {
             <Droplets className="h-5 w-5" />
             Water Parameters
           </div>
-          <Badge variant={sensorConnected ? "default" : "secondary"}>
-            {sensorConnected ? (
-              <>
-                <Wifi className="h-3 w-3 mr-1" />
-                IoT Connected
-              </>
-            ) : (
-              <>
-                <WifiOff className="h-3 w-3 mr-1" />
-                Manual Entry
-              </>
-            )}
+          <Badge variant="secondary">
+            <WifiOff className="h-3 w-3 mr-1" />
+            Manual Entry
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -121,9 +143,7 @@ const WaterParametersForm = () => {
             <div>
               <p className="font-medium">IoT Sensor Integration</p>
               <p className="text-sm text-muted-foreground">
-                {sensorConnected 
-                  ? "Receiving real-time data from sensor" 
-                  : "Connect your water quality sensor"}
+                Record measured water quality for a selected pond
               </p>
             </div>
             <Button 
@@ -132,14 +152,22 @@ const WaterParametersForm = () => {
               onClick={sensorConnected ? handleDisconnectSensor : handleConnectSensor}
               disabled={connecting}
             >
-              {connecting ? "Connecting..." : sensorConnected ? "Disconnect" : "Connect Sensor"}
+              {connecting ? "Checking..." : "Check Sensor"}
             </Button>
           </div>
           {!sensorConnected && (
             <p className="text-xs text-muted-foreground mt-2">
-              💡 Supported devices: AquaMon Pro, WaterSense IoT, Smart Pond Monitor
+              No sensor is connected. Values are saved as manual readings.
             </p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="water-pond">Pond</Label>
+          <Select value={selectedPondId} onValueChange={setSelectedPondId}>
+            <SelectTrigger id="water-pond"><SelectValue placeholder="Choose a pond" /></SelectTrigger>
+            <SelectContent>{ponds.map((pond) => <SelectItem key={pond.id} value={pond.id}>{pond.pond_name}</SelectItem>)}</SelectContent>
+          </Select>
         </div>
 
         {/* Parameter Inputs */}
@@ -156,7 +184,7 @@ const WaterParametersForm = () => {
               placeholder="7.5 - 8.5"
               value={parameters.ph}
               onChange={(e) => handleChange("ph", e.target.value)}
-              disabled={sensorConnected}
+               disabled={false}
             />
             {parameters.ph && (
               <div className="flex items-center gap-2">
@@ -178,7 +206,7 @@ const WaterParametersForm = () => {
               placeholder="15 - 25"
               value={parameters.salinity}
               onChange={(e) => handleChange("salinity", e.target.value)}
-              disabled={sensorConnected}
+               disabled={false}
             />
           </div>
 
@@ -194,7 +222,7 @@ const WaterParametersForm = () => {
               placeholder="≥ 5.0"
               value={parameters.dissolvedOxygen}
               onChange={(e) => handleChange("dissolvedOxygen", e.target.value)}
-              disabled={sensorConnected}
+               disabled={false}
             />
             {parameters.dissolvedOxygen && (
               <div className="flex items-center gap-2">
@@ -216,14 +244,14 @@ const WaterParametersForm = () => {
               placeholder="26 - 32"
               value={parameters.temperature}
               onChange={(e) => handleChange("temperature", e.target.value)}
-              disabled={sensorConnected}
+               disabled={false}
             />
           </div>
         </div>
 
-        <Button onClick={handleSave} className="w-full">
+        <Button onClick={handleSave} className="w-full" disabled={saving || !selectedPondId}>
           <Save className="h-4 w-4 mr-2" />
-          Save Parameters
+          {saving ? "Saving..." : "Save Parameters"}
         </Button>
       </CardContent>
     </Card>
