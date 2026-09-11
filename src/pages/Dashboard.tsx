@@ -74,6 +74,10 @@ const Dashboard = () => {
   const [temperature, setTemperature] = useState<number | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [farms, setFarms] = useState<any[]>([]);
+  const [ponds, setPonds] = useState<any[]>([]);
+  const [cropCycles, setCropCycles] = useState<any[]>([]);
+  const [waterQualityLogs, setWaterQualityLogs] = useState<any[]>([]);
+  const [dailyFarmLogs, setDailyFarmLogs] = useState<any[]>([]);
   const [powerMonDevices, setPowerMonDevices] = useState<any[]>([]);
   const [shrimpRates, setShrimpRates] = useState<any[]>([]); // Kept for backward compatibility
   const [dailyUpdates, setDailyUpdates] = useState<any[]>([]);
@@ -114,6 +118,7 @@ const Dashboard = () => {
     if (user) {
       fetchProfile();
       fetchFarms();
+      fetchFarmRecords();
       fetchPowerMonDevices();
       fetchDailyUpdates();
     }
@@ -246,6 +251,27 @@ const Dashboard = () => {
     }
   };
 
+  const fetchFarmRecords = async () => {
+    if (!user) return;
+
+    const [pondsResult, cyclesResult, waterResult, logsResult] = await Promise.all([
+      supabase.from('ponds').select('id, pond_name, species, status').eq('user_id', user.id).order('created_at'),
+      supabase.from('crop_cycles').select('id, cycle_name, species, start_date, end_date, status').eq('user_id', user.id).order('start_date', { ascending: false }),
+      supabase.from('water_quality_logs').select('id, pond_id, recorded_at, ph, dissolved_oxygen, temperature, salinity').eq('user_id', user.id).order('recorded_at', { ascending: false }).limit(1),
+      supabase.from('daily_farm_logs').select('id, pond_id, log_date, feed_quantity, mortality_count, pond_observation').eq('user_id', user.id).order('log_date', { ascending: false }).limit(5),
+    ]);
+
+    if (pondsResult.error || cyclesResult.error || waterResult.error || logsResult.error) {
+      console.error('Error fetching live farm records:', pondsResult.error || cyclesResult.error || waterResult.error || logsResult.error);
+      return;
+    }
+
+    setPonds(pondsResult.data || []);
+    setCropCycles(cyclesResult.data || []);
+    setWaterQualityLogs(waterResult.data || []);
+    setDailyFarmLogs(logsResult.data || []);
+  };
+
   const fetchShrimpRates = async () => {
     const today = new Date().toISOString().split('T')[0];
     
@@ -267,33 +293,25 @@ const Dashboard = () => {
     }
   };
 
-  const totalPonds = farms.reduce((sum, farm) => sum + farm.number_of_ponds, 0);
+  const totalPonds = ponds.length;
   const activeDevices = powerMonDevices.length;
+  const latestWaterReading = waterQualityLogs[0];
+  const activeCycles = cropCycles.filter((cycle) => cycle.status === 'active' || cycle.status === 'ongoing');
 
   const farmStats = [
-    { label: "Total Ponds", value: totalPonds.toString(), icon: Fish, color: "text-blue-600" },
+    { label: "Ponds recorded", value: totalPonds.toString(), icon: Fish, color: "text-blue-600" },
     { label: "Active Devices", value: activeDevices.toString(), icon: Zap, color: "text-green-600" },
-    { label: "Total Farms", value: farms.length.toString(), icon: TrendingUp, color: "text-purple-600" },
-    { label: "Water Quality", value: "Good", icon: Droplets, color: "text-blue-500" },
+    { label: "Active crops", value: activeCycles.length.toString(), icon: TrendingUp, color: "text-purple-600" },
+    { label: "Latest water log", value: latestWaterReading ? new Date(latestWaterReading.recorded_at).toLocaleDateString('en-IN') : "Not recorded", icon: Droplets, color: "text-blue-500" },
   ];
 
-  const cropData = [
-    { species: "Black Tiger Shrimp", progress: 75, ponds: 6, status: "Healthy" },
-    { species: "Vannamei Shrimp", progress: 60, ponds: 4, status: "Monitoring" },
-    { species: "Rohu Fish", progress: 85, ponds: 2, status: "Excellent" },
-  ];
-
-  const powerMonData = [
-    { device: "PowerMon-A1", amps: "12.5A", status: "Normal", location: "Pond 1-3" },
-    { device: "PowerMon-B2", amps: "15.2A", status: "High", location: "Pond 4-6" },
-    { device: "PowerMon-C3", amps: "8.9A", status: "Low", location: "Pond 7-9" },
-  ];
-
-  const alarms = [
-    { type: "Water Quality", message: "pH level monitoring active", time: "2 mins ago", severity: "low" },
-    { type: "Equipment", message: "All systems operational", time: "1 hour ago", severity: "low" },
-    { type: "Feed", message: "Feed stock normal", time: "3 hours ago", severity: "low" },
-  ];
+  const todayLog = dailyFarmLogs.find((log) => log.log_date === new Date().toISOString().split('T')[0]);
+  const todayActions = [
+    !todayLog ? 'Record today’s feed, mortality, and pond observation' : null,
+    !latestWaterReading ? 'Add a measured water-quality reading' : null,
+    farms.length === 0 ? 'Add your first farm' : null,
+    ponds.length === 0 && farms.length > 0 ? 'Add individual pond records' : null,
+  ].filter((action): action is string => Boolean(action));
 
   const handleAddFarm = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -564,7 +582,27 @@ const Dashboard = () => {
           })}
         </div>
 
-        {/* Crop Progress */}
+         {/* Today’s brief */}
+         <Card className="border-primary/20 bg-primary/5">
+           <CardHeader>
+             <CardTitle className="flex items-center gap-2">
+               <Bell className="h-5 w-5" />
+               What should I do today?
+             </CardTitle>
+           </CardHeader>
+           <CardContent>
+             {todayActions.length === 0 ? (
+               <p className="text-sm text-muted-foreground">No additional actions are available from your recorded data.</p>
+             ) : (
+               <ul className="space-y-2 text-sm">
+                 {todayActions.map((action) => <li key={action} className="flex items-start gap-2"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />{action}</li>)}
+               </ul>
+             )}
+             {latestWaterReading && <p className="mt-3 text-xs text-muted-foreground">Latest measured water reading: pH {latestWaterReading.ph ?? 'not recorded'}, dissolved oxygen {latestWaterReading.dissolved_oxygen ?? 'not recorded'} mg/L.</p>}
+           </CardContent>
+         </Card>
+
+         {/* Crop Progress */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -579,18 +617,17 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {cropData.map((crop, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">{crop.species}</span>
-                  <Badge variant={crop.status === "Excellent" ? "default" : crop.status === "Healthy" ? "secondary" : "outline"}>
-                    {crop.status}
-                  </Badge>
-                </div>
-                <Progress value={crop.progress} className="h-2" />
-                <p className="text-sm text-muted-foreground">{crop.ponds} ponds • {crop.progress}% complete</p>
-              </div>
-            ))}
+             {cropCycles.length === 0 ? (
+               <p className="py-4 text-center text-sm text-muted-foreground">No crop cycle recorded yet. Add one from Farm → Finance.</p>
+             ) : cropCycles.map((cycle) => (
+               <div key={cycle.id} className="space-y-2 rounded-lg border p-3">
+                 <div className="flex items-center justify-between gap-3">
+                   <span className="font-medium">{cycle.species || cycle.cycle_name}</span>
+                   <Badge variant={cycle.status === "active" || cycle.status === "ongoing" ? "secondary" : "outline"}>{cycle.status}</Badge>
+                 </div>
+                 <p className="text-sm text-muted-foreground">Started {new Date(cycle.start_date).toLocaleDateString('en-IN')}{cycle.end_date ? ` • Ends ${new Date(cycle.end_date).toLocaleDateString('en-IN')}` : ' • End date not recorded'}</p>
+               </div>
+             ))}
           </CardContent>
         </Card>
 
@@ -691,28 +728,25 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Alarms */}
+         {/* Recorded activity */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Recent Alarms
+               Recent Farm Activity
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {alarms.map((alarm, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
-                <AlertTriangle className={`h-4 w-4 mt-0.5 ${
-                  alarm.severity === "high" ? "text-red-500" : 
-                  alarm.severity === "medium" ? "text-yellow-500" : "text-gray-500"
-                }`} />
-                <div className="flex-1">
-                  <p className="font-medium">{alarm.type}</p>
-                  <p className="text-sm text-muted-foreground">{alarm.message}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{alarm.time}</p>
-                </div>
-              </div>
-            ))}
+             {dailyFarmLogs.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">No daily activity has been recorded yet.</p> : dailyFarmLogs.map((log) => (
+               <div key={log.id} className="flex items-start gap-3 rounded-lg bg-muted p-3">
+                 <AlertTriangle className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                 <div className="flex-1">
+                   <p className="font-medium">{new Date(log.log_date).toLocaleDateString('en-IN')}</p>
+                   <p className="text-sm text-muted-foreground">Feed: {log.feed_quantity ?? 'not recorded'} kg · Mortality: {log.mortality_count ?? 'not recorded'}</p>
+                   {log.pond_observation && <p className="mt-1 text-sm">{log.pond_observation}</p>}
+                 </div>
+               </div>
+             ))}
           </CardContent>
         </Card>
 
