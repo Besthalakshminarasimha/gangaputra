@@ -72,6 +72,8 @@ const Dashboard = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [weatherLocation, setWeatherLocation] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
+  const [humidity, setHumidity] = useState<number | null>(null);
+  const [windSpeed, setWindSpeed] = useState<number | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [farms, setFarms] = useState<any[]>([]);
   const [ponds, setPonds] = useState<any[]>([]);
@@ -426,16 +428,35 @@ const Dashboard = () => {
       return;
     }
     
-    // Simulating weather API call
     toast({
       title: "Fetching Weather",
       description: `Getting temperature for ${weatherLocation}...`,
     });
-    
-    // Mock temperature data
-    setTimeout(() => {
-      setTemperature(Math.floor(Math.random() * 15) + 20); // Random temp between 20-35°C
-    }, 1000);
+
+    try {
+      const geocodeResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(weatherLocation)}&count=1&language=en&format=json`);
+      const geocodeData = await geocodeResponse.json();
+      const location = geocodeData.results?.[0];
+      if (!location) throw new Error("Location not found");
+
+      const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto`);
+      const weatherData = await weatherResponse.json();
+      const current = weatherData.current;
+      if (!current) throw new Error("Current weather is unavailable");
+
+      setTemperature(current.temperature_2m ?? null);
+      setHumidity(current.relative_humidity_2m ?? null);
+      setWindSpeed(current.wind_speed_10m ?? null);
+    } catch (error) {
+      setTemperature(null);
+      setHumidity(null);
+      setWindSpeed(null);
+      toast({
+        title: "Weather unavailable",
+        description: error instanceof Error ? error.message : "Could not load current weather.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleLogout = async () => {
@@ -900,11 +921,11 @@ const Dashboard = () => {
                   <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Humidity</p>
-                      <p className="font-bold">65%</p>
+                     <p className="font-bold">{humidity !== null ? `${humidity}%` : "Not available"}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Wind Speed</p>
-                      <p className="font-bold">12 km/h</p>
+                     <p className="font-bold">{windSpeed !== null ? `${windSpeed} km/h` : "Not available"}</p>
                     </div>
                   </div>
                 </CardContent>
