@@ -685,6 +685,39 @@ export type Database = {
         }
         Relationships: []
       }
+      fish_rates: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          location: string
+          rate_per_kg: number
+          species: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          location: string
+          rate_per_kg: number
+          species: string
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          location?: string
+          rate_per_kg?: number
+          species?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hatcheries: {
         Row: {
           created_at: string
