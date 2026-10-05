@@ -3,6 +3,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
 // Indian fish market locations & species base prices (INR/kg)
 const fishSpecies = [
   { name: 'Rohu', base: 220 },
@@ -39,6 +41,18 @@ Deno.serve(async (req) => {
     const dateStr = today.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
     const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY');
+    const db = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+    const { data: publishedRates } = db
+      ? await db.from('fish_rates').select('species, location, state, date, rate_per_kg').lte('date', today.toISOString().split('T')[0]).order('date', { ascending: false }).limit(1000)
+      : { data: [] };
+    const latestPublished = new Map<string, number>();
+    for (const published of publishedRates || []) {
+      const key = `${published.location.toLowerCase()}::${published.species.toLowerCase()}`;
+      if (!latestPublished.has(key)) latestPublished.set(key, published.rate_per_kg);
+    }
+
     const data = markets.map((m) => ({
       location: m.name,
       state: m.state,
@@ -46,13 +60,14 @@ Deno.serve(async (req) => {
       dateISO: today.toISOString().split('T')[0],
       trend: variation(dateSeed + m.name.length) > 0 ? 'up' : 'down',
       lastUpdated: new Date().toISOString(),
-      rates: fishSpecies.map((s, i) => ({
+       rates: fishSpecies.map((s, i) => ({
         species: s.name,
-        rate_per_kg: Math.max(100, Math.round(s.base * m.mod + variation(dateSeed + i * 7 + m.name.length))),
+         rate_per_kg: latestPublished.get(`${m.name.toLowerCase()}::${s.name.toLowerCase()}`) ?? Math.max(100, Math.round(s.base * m.mod + variation(dateSeed + i * 7 + m.name.length))),
       })),
+       source: fishSpecies.some((s) => latestPublished.has(`${m.name.toLowerCase()}::${s.name.toLowerCase()}`)) ? 'admin-published' : 'ai-estimated',
     }));
 
-    return new Response(JSON.stringify({ success: true, data, totalLocations: data.length, generatedAt: new Date().toISOString(), source: 'ai-estimated' }), {
+    return new Response(JSON.stringify({ success: true, data, totalLocations: data.length, generatedAt: new Date().toISOString(), source: data.some((market) => market.source === 'admin-published') ? 'admin-published' : 'ai-estimated' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
