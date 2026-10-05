@@ -47,7 +47,7 @@
       {
         "name": "get_fish_rates",
         "title": "Get daily fish rates",
-        "description": "Fetch the latest daily fish market rates. Uses the shrimp_rates table filtered to fish species when present; otherwise returns the same rate feed.",
+        "description": "Fetch the latest admin-published fish market rates by species and location.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
