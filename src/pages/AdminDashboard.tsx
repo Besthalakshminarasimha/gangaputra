@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart, Fish, Pill, Stethoscope, CalendarCheck, Briefcase, ClipboardList, Landmark, Home } from "lucide-react";
+import { Shield, LogOut, Package, Users, Database, BarChart3, Download, Bug, BookOpen, FileText, ShoppingBag, Bell, ShoppingCart, Image, PieChart, Fish, Pill, Stethoscope, CalendarCheck, Briefcase, ClipboardList, Landmark, Home, IndianRupee } from "lucide-react";
 import AdminRequestsTable from "@/components/admin/AdminRequestsTable";
 import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
@@ -26,6 +26,7 @@ import AdminJobProfiles from "@/components/admin/AdminJobProfiles";
 import AdminJobPostings from "@/components/admin/AdminJobPostings";
 import AdminBankLoans from "@/components/admin/AdminBankLoans";
 import AdminLandingPage from "@/components/admin/AdminLandingPage";
+import AdminMarketRates from "@/components/admin/AdminMarketRates";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -177,6 +178,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="carousel-analytics"><PieChart className="h-4 w-4 mr-1" />Carousel Stats</TabsTrigger>
             <TabsTrigger value="updates"><Bell className="h-4 w-4 mr-1" />Updates</TabsTrigger>
             <TabsTrigger value="bank-loans"><Landmark className="h-4 w-4 mr-1" />Bank Loans</TabsTrigger>
+            <TabsTrigger value="market-rates"><IndianRupee className="h-4 w-4 mr-1" />Market Rates</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" />Analytics</TabsTrigger>
             <TabsTrigger value="export"><Download className="h-4 w-4 mr-1" />Export</TabsTrigger>
           </TabsList>
@@ -199,6 +201,7 @@ const AdminDashboard = () => {
           <TabsContent value="carousel-analytics"><AdminCarouselAnalytics /></TabsContent>
           <TabsContent value="updates"><AdminDailyUpdates /></TabsContent>
           <TabsContent value="bank-loans"><AdminBankLoans /></TabsContent>
+          <TabsContent value="market-rates"><AdminMarketRates /></TabsContent>
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
           <TabsContent value="export"><AdminExport /></TabsContent>
         </Tabs>

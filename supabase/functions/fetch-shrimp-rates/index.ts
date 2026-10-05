@@ -3,6 +3,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
 // Indian shrimp market locations with base prices
 const marketLocations = [
   { name: "Bhimavaram", state: "Andhra Pradesh", basePrice: 350 },
@@ -79,7 +81,19 @@ Deno.serve(async (req) => {
       // No body or invalid JSON, use all locations
     }
 
-    // Generate rates for all locations or specific location
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY');
+    const db = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+    const { data: publishedRates } = db
+      ? await db.from('shrimp_rates').select('location, count_range, date, rate_per_kg').lte('date', today.toISOString().split('T')[0]).order('date', { ascending: false }).limit(1000)
+      : { data: [] };
+    const latestPublished = new Map<string, { rate_per_kg: number; date: string }>();
+    for (const published of publishedRates || []) {
+      const key = `${published.location.toLowerCase()}::${published.count_range}`;
+      if (!latestPublished.has(key)) latestPublished.set(key, { rate_per_kg: published.rate_per_kg, date: published.date });
+    }
+
+    // Generate rates for all locations or specific location, then overlay admin-published values.
     const rates: any[] = [];
     
     const locationsToProcess = requestedLocation 
@@ -90,7 +104,12 @@ Deno.serve(async (req) => {
       : marketLocations;
 
     for (const location of locationsToProcess) {
-      const locationRates = generateRatesForLocation(location, dateSeed);
+      const generatedRates = generateRatesForLocation(location, dateSeed);
+      const locationRates = generatedRates.map((rate) => {
+        const published = latestPublished.get(`${location.name.toLowerCase()}::${rate.count_range}`);
+        return published ? { ...rate, rate_per_kg: published.rate_per_kg } : rate;
+      });
+      const hasPublishedRate = locationRates.some((rate, index) => rate.rate_per_kg !== generatedRates[index]?.rate_per_kg);
       
       rates.push({
         location: location.name,
@@ -99,7 +118,8 @@ Deno.serve(async (req) => {
         dateISO: today.toISOString().split('T')[0],
         rates: locationRates,
         trend: generateDailyVariation(dateSeed + location.name.length) > 0 ? 'up' : 'down',
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        source: hasPublishedRate ? 'admin-published' : 'ai-estimated'
       });
     }
 
@@ -111,7 +131,7 @@ Deno.serve(async (req) => {
         data: rates, 
         totalLocations: rates.length,
         generatedAt: new Date().toISOString(),
-        source: 'ai-estimated'
+        source: rates.some((rate) => rate.source === 'admin-published') ? 'admin-published' : 'ai-estimated'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

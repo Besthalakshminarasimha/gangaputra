@@ -26,6 +26,7 @@ interface LocationRates {
   rates: RateData[];
   trend: 'up' | 'down';
   lastUpdated: string;
+  source?: 'admin-published' | 'ai-estimated';
 }
 
 const ShrimpRatesCard = () => {
@@ -177,7 +178,9 @@ const ShrimpRatesCard = () => {
               </div>
             ))}
             <p className="text-xs text-muted-foreground text-center">
-              AI-estimated rates • Select a market for detailed prices
+              {allRates.some((rate) => rate.source === 'admin-published')
+                ? 'Admin-published market rates • Select a market for detailed prices'
+                : 'Estimated fallback rates • Select a market for detailed prices'}
             </p>
           </div>
         ) : (

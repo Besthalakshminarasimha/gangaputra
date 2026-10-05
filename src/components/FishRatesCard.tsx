@@ -8,7 +8,7 @@ import { Fish, RefreshCw, MapPin, IndianRupee, TrendingUp, TrendingDown } from "
 
 interface FishRate { species: string; rate_per_kg: number; }
 interface LocationRates {
-  location: string; state: string; date: string; trend: 'up' | 'down'; rates: FishRate[];
+  location: string; state: string; date: string; trend: 'up' | 'down'; rates: FishRate[]; source?: 'admin-published' | 'ai-estimated';
 }
 
 const FishRatesCard = () => {
@@ -37,7 +37,7 @@ const FishRatesCard = () => {
         {loading ? (
           <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-20" />)}</div>
         ) : (
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+           <div className="space-y-3 max-h-96 overflow-y-auto">
             {data.map((loc) => (
               <div key={loc.location} className="border rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
@@ -54,6 +54,9 @@ const FishRatesCard = () => {
                       <div className="font-bold flex items-center"><IndianRupee className="h-3 w-3" />{r.rate_per_kg}/kg</div>
                     </div>
                   ))}
+             <p className="text-center text-xs text-muted-foreground">
+               {data.some((rate) => rate.source === "admin-published") ? "Admin-published market rates" : "Estimated fallback rates"}
+             </p>
                 </div>
               </div>
             ))}

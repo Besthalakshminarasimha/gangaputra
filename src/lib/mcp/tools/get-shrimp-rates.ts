@@ -14,8 +14,8 @@ export default defineTool({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ market, limit }) => {
     const sb = supabaseAnon();
-    let q = sb.from("shrimp_rates").select("*").order("created_at", { ascending: false }).limit(limit);
-    if (market) q = q.ilike("market", `%${market}%`);
+    let q = sb.from("shrimp_rates").select("*").order("date", { ascending: false }).limit(limit);
+    if (market) q = q.ilike("location", `%${market}%`);
     const { data, error } = await q;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {

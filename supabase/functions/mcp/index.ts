@@ -40,8 +40,8 @@ var get_shrimp_rates_default = defineTool({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ market, limit }) => {
     const sb = supabaseAnon();
-    let q = sb.from("shrimp_rates").select("*").order("created_at", { ascending: false }).limit(limit);
-    if (market) q = q.ilike("market", `%${market}%`);
+    let q = sb.from("shrimp_rates").select("*").order("date", { ascending: false }).limit(limit);
+    if (market) q = q.ilike("location", `%${market}%`);
     const { data, error } = await q;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
@@ -57,7 +57,7 @@ import { z as z2 } from "npm:zod@^3.25.76";
 var get_fish_rates_default = defineTool2({
   name: "get_fish_rates",
   title: "Get daily fish rates",
-  description: "Fetch the latest daily fish market rates. Uses the shrimp_rates table filtered to fish species when present; otherwise returns the same rate feed.",
+  description: "Fetch the latest admin-published fish market rates by species and location.",
   inputSchema: {
     species: z2.string().optional().describe("Optional species filter, e.g. 'Rohu', 'Katla'."),
     limit: z2.number().int().min(1).max(200).default(50)
@@ -65,7 +65,7 @@ var get_fish_rates_default = defineTool2({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ species, limit }) => {
     const sb = supabaseAnon();
-    let q = sb.from("shrimp_rates").select("*").order("created_at", { ascending: false }).limit(limit);
+    let q = sb.from("fish_rates").select("*").order("date", { ascending: false }).limit(limit);
     if (species) q = q.ilike("species", `%${species}%`);
     const { data, error } = await q;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
