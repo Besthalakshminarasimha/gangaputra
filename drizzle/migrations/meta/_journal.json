@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791263777735,
+      "tag": "0000_farm_verification_passport",
+      "breakpoints": true
+    }
+  ]
+}
