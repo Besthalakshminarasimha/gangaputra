@@ -360,6 +360,7 @@ export type Database = {
           symptoms: string | null
           updated_at: string
           user_id: string
+          verification_status: string
           weather_observation: string | null
         }
         Insert: {
@@ -376,6 +377,7 @@ export type Database = {
           symptoms?: string | null
           updated_at?: string
           user_id: string
+          verification_status?: string
           weather_observation?: string | null
         }
         Update: {
@@ -392,6 +394,7 @@ export type Database = {
           symptoms?: string | null
           updated_at?: string
           user_id?: string
+          verification_status?: string
           weather_observation?: string | null
         }
         Relationships: [
@@ -662,8 +665,10 @@ export type Database = {
           id: string
           location: string
           number_of_ponds: number
+          passport_number: string | null
           updated_at: string
           user_id: string
+          verification_status: string
         }
         Insert: {
           created_at?: string
@@ -671,8 +676,10 @@ export type Database = {
           id?: string
           location: string
           number_of_ponds: number
+          passport_number?: string | null
           updated_at?: string
           user_id: string
+          verification_status?: string
         }
         Update: {
           created_at?: string
@@ -680,8 +687,10 @@ export type Database = {
           id?: string
           location?: string
           number_of_ponds?: number
+          passport_number?: string | null
           updated_at?: string
           user_id?: string
+          verification_status?: string
         }
         Relationships: []
       }
@@ -1415,6 +1424,7 @@ export type Database = {
           stocking_quantity: number | null
           updated_at: string
           user_id: string
+          verification_status: string
         }
         Insert: {
           area_acres?: number | null
@@ -1430,6 +1440,7 @@ export type Database = {
           stocking_quantity?: number | null
           updated_at?: string
           user_id: string
+          verification_status?: string
         }
         Update: {
           area_acres?: number | null
@@ -1445,6 +1456,7 @@ export type Database = {
           stocking_quantity?: number | null
           updated_at?: string
           user_id?: string
+          verification_status?: string
         }
         Relationships: [
           {
@@ -1915,6 +1927,7 @@ export type Database = {
           temperature: number | null
           updated_at: string
           user_id: string
+          verification_status: string
         }
         Insert: {
           ammonia?: number | null
@@ -1931,6 +1944,7 @@ export type Database = {
           temperature?: number | null
           updated_at?: string
           user_id: string
+          verification_status?: string
         }
         Update: {
           ammonia?: number | null
@@ -1947,6 +1961,7 @@ export type Database = {
           temperature?: number | null
           updated_at?: string
           user_id?: string
+          verification_status?: string
         }
         Relationships: [
           {
@@ -1963,6 +1978,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_farm_passport: { Args: { _number: string }; Returns: Json }
       get_shared_health_report: {
         Args: { _token: string }
         Returns: {
