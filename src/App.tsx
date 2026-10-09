@@ -12,6 +12,7 @@ import BottomNavigation from "./components/BottomNavigation";
 import AIAssistant from "./components/AIAssistant";
 import { AutopilotProvider } from "./components/CometAgent/AutopilotProvider";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy load pages for better performance
 const Introduction = lazy(() => import("./pages/Introduction"));
@@ -33,6 +34,9 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const SharedHealthReport = lazy(() => import("./pages/SharedHealthReport"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const FarmPassport = lazy(() => import("./pages/FarmPassport"));
+const PublicFarmPassport = lazy(() => import("./pages/PublicFarmPassport"));
+const Doctors = lazy(() => import("./pages/Doctors"));
 
 const queryClient = new QueryClient();
 
@@ -46,7 +50,7 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<PageTransition><Introduction /></PageTransition>} />
           <Route path="/home" element={<PageTransition><Index /></PageTransition>} />
           <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
-          <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+          <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
           <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
           <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
           <Route path="/farm" element={<PageTransition><Farm /></PageTransition>} />
@@ -57,6 +61,9 @@ const AnimatedRoutes = () => {
           <Route path="/price-alerts" element={<PageTransition><PriceAlertsHistory /></PageTransition>} />
           <Route path="/jobs" element={<PageTransition><Jobs /></PageTransition>} />
           <Route path="/ai-agents" element={<PageTransition><AIAgents /></PageTransition>} />
+          <Route path="/passport" element={<ProtectedRoute><PageTransition><FarmPassport /></PageTransition></ProtectedRoute>} />
+          <Route path="/passport/view/:number" element={<PageTransition><PublicFarmPassport /></PageTransition>} />
+          <Route path="/doctors" element={<PageTransition><Doctors /></PageTransition>} />
           <Route path="/admin" element={<PageTransition><AdminAuth /></PageTransition>} />
           <Route path="/admin/dashboard" element={<PageTransition><AdminDashboard /></PageTransition>} />
           <Route path="/health-report/:token" element={<PageTransition><SharedHealthReport /></PageTransition>} />

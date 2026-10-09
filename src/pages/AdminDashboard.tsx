@@ -27,6 +27,7 @@ import AdminJobPostings from "@/components/admin/AdminJobPostings";
 import AdminBankLoans from "@/components/admin/AdminBankLoans";
 import AdminLandingPage from "@/components/admin/AdminLandingPage";
 import AdminMarketRates from "@/components/admin/AdminMarketRates";
+import AdminFarmRecords from "@/components/admin/AdminFarmRecords";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -158,7 +159,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="requests" className="space-y-4">
+        <Tabs defaultValue="market-rates" className="space-y-4">
           <TabsList className="flex flex-wrap gap-1">
             <TabsTrigger value="requests"><Package className="h-4 w-4 mr-1" />Requests</TabsTrigger>
             <TabsTrigger value="welcome"><Home className="h-4 w-4 mr-1" />Welcome Page</TabsTrigger>
@@ -179,6 +180,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="updates"><Bell className="h-4 w-4 mr-1" />Updates</TabsTrigger>
             <TabsTrigger value="bank-loans"><Landmark className="h-4 w-4 mr-1" />Bank Loans</TabsTrigger>
             <TabsTrigger value="market-rates"><IndianRupee className="h-4 w-4 mr-1" />Market Rates</TabsTrigger>
+            <TabsTrigger value="farm-records"><Fish className="h-4 w-4 mr-1" />Farms & Pond Logs</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" />Analytics</TabsTrigger>
             <TabsTrigger value="export"><Download className="h-4 w-4 mr-1" />Export</TabsTrigger>
           </TabsList>
@@ -202,6 +204,7 @@ const AdminDashboard = () => {
           <TabsContent value="updates"><AdminDailyUpdates /></TabsContent>
           <TabsContent value="bank-loans"><AdminBankLoans /></TabsContent>
           <TabsContent value="market-rates"><AdminMarketRates /></TabsContent>
+          <TabsContent value="farm-records"><AdminFarmRecords /></TabsContent>
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
           <TabsContent value="export"><AdminExport /></TabsContent>
         </Tabs>

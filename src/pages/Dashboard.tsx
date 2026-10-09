@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -477,7 +477,7 @@ const Dashboard = () => {
   }
 
   if (!user) {
-    return null;
+    return <Navigate to="/auth" replace state={{ from: "/dashboard" }} />;
   }
 
   return (
@@ -502,15 +502,6 @@ const Dashboard = () => {
             >
               <User className="h-4 w-4 mr-2" />
               Profile
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleLogout} 
-              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
             </Button>
           </div>
         </div>
@@ -963,10 +954,10 @@ const Dashboard = () => {
                 <p className="text-base font-medium">{profile?.full_name || "Not set"}</p>
               </div>
               
-              <div>
-                <Label className="text-sm text-muted-foreground">User ID</Label>
-                <p className="text-xs font-mono bg-muted p-2 rounded break-all">{user?.id}</p>
-              </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">User ID</Label>
+                  <p className="text-xs font-mono bg-muted p-2 rounded break-all">{user?.id}</p>
+                </div>
               
               <div>
                 <Label className="text-sm text-muted-foreground">Account Created</Label>

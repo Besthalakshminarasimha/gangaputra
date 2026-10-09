@@ -23,7 +23,7 @@ const AdminFarmRecords = () => {
   const load = async () => {
     setLoading(true);
     const [f, p, d, w] = await Promise.all([
-      supabase.from("farms").select("id, farm_name, location, number_of_ponds, passport_number, verification_status, created_at").order("created_at", { ascending: false }).limit(300),
+      supabase.from("farms").select("id, farm_name, location, number_of_ponds, passport_share_token, verification_status, created_at").order("created_at", { ascending: false }).limit(300),
       supabase.from("ponds").select("id, farm_id, pond_name, species, status, area_acres, stocking_date, verification_status, created_at").order("created_at", { ascending: false }).limit(300),
       supabase.from("daily_farm_logs").select("id, pond_id, log_date, feed_quantity, mortality_count, pond_observation, verification_status").order("log_date", { ascending: false }).limit(300),
       supabase.from("water_quality_logs").select("id, pond_id, recorded_at, ph, dissolved_oxygen, temperature, salinity, ammonia, verification_status").order("recorded_at", { ascending: false }).limit(300),
@@ -58,7 +58,7 @@ const AdminFarmRecords = () => {
 
   const describe = (table: Table, r: Row) => {
     switch (table) {
-      case "farms": return { title: `${r.farm_name} · ${r.passport_number ?? ""}`, sub: `${r.location} · ${r.number_of_ponds} ponds declared` };
+      case "farms": return { title: `${r.farm_name} · ${r.passport_share_token ?? ""}`, sub: `${r.location} · ${r.number_of_ponds} ponds declared` };
       case "ponds": return { title: `${r.pond_name} (${farmName(r.farm_id)})`, sub: `${r.species ?? "species —"} · ${r.area_acres ?? "—"} acres · ${r.status}` };
       case "daily_farm_logs": return { title: `${pondName(r.pond_id)} · ${r.log_date}`, sub: `Feed ${r.feed_quantity ?? "—"} kg · Mortality ${r.mortality_count ?? "—"}${r.pond_observation ? ` · ${r.pond_observation}` : ""}` };
       case "water_quality_logs": return { title: `${pondName(r.pond_id)} · ${new Date(r.recorded_at).toLocaleString("en-IN")}`, sub: `pH ${r.ph ?? "—"} · DO ${r.dissolved_oxygen ?? "—"} · Temp ${r.temperature ?? "—"} · Sal ${r.salinity ?? "—"} · NH3 ${r.ammonia ?? "—"}` };
