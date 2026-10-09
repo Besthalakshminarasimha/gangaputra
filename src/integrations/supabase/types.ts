@@ -666,6 +666,7 @@ export type Database = {
           location: string
           number_of_ponds: number
           passport_number: string | null
+          passport_share_token: string
           updated_at: string
           user_id: string
           verification_status: string
@@ -677,6 +678,7 @@ export type Database = {
           location: string
           number_of_ponds: number
           passport_number?: string | null
+          passport_share_token?: string
           updated_at?: string
           user_id: string
           verification_status?: string
@@ -688,6 +690,7 @@ export type Database = {
           location?: string
           number_of_ponds?: number
           passport_number?: string | null
+          passport_share_token?: string
           updated_at?: string
           user_id?: string
           verification_status?: string
