@@ -39,14 +39,16 @@ const BottomNavigation = () => {
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card">
         <div className="flex items-center justify-between gap-2 px-3 py-2">
-          <button
+          <Button
+            type="button"
             onClick={() => setOpen(true)}
             aria-label="Open menu"
-            className="flex min-w-[64px] flex-col items-center rounded-lg px-2 py-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            variant="ghost"
+            className="h-auto min-w-[64px] flex-col px-2 py-1.5 text-muted-foreground"
           >
             <Menu className="mb-1 h-5 w-5" />
             <span className="text-xs font-medium">Menu</span>
-          </button>
+          </Button>
           <Link
             to="/doctors"
             className={cn(
