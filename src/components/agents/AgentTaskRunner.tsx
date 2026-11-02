@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
 
 type TaskStatus = "pending" | "running" | "done" | "error";
 
@@ -110,16 +111,24 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? ""}`,
         },
         body: JSON.stringify({
+          agentId: agent.id,
           messages: [{ role: "user", content: userContent }],
           agentPrompt: agent.systemPrompt + "\n\nProvide a comprehensive, actionable report. Use markdown formatting with headers, bullet points, and tables where appropriate. Be specific with numbers, dosages, and recommendations." + (uploadedImage ? "\n\nThe user has uploaded an image. Analyze it carefully and incorporate your observations into your response." : ""),
         }),
         signal: controller.signal,
       });
 
-      if (!resp.ok || !resp.body) throw new Error("AI request failed");
+      if (!resp.ok || !resp.body) {
+        let message = `AI request failed (${resp.status}).`;
+        try {
+          const errorBody = await resp.json();
+          if (typeof errorBody.error === "string") message = errorBody.error;
+        } catch { /* Keep the safe status message when the response is not JSON. */ }
+        throw new Error(message);
+      }
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -141,7 +150,12 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
           if (jsonStr === "[DONE]") break;
           try {
             const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
+            if (parsed.type === "error" || parsed.type === "response.failed") {
+              throw new Error(parsed.error?.message || "The AI request failed.");
+            }
+            const content = parsed.type === "response.output_text.delta"
+              ? parsed.delta
+              : parsed.choices?.[0]?.delta?.content;
             if (content) {
               fullResult += content;
               setTasks(prev => prev.map(t => t.id === taskId ? { ...t, result: fullResult } : t));
@@ -153,12 +167,13 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
         }
       }
 
+      if (!fullResult.trim()) throw new Error("The AI service returned no answer. Please retry.");
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "done", result: fullResult } : t));
       return true;
     } catch (e: any) {
       if (e.name === "AbortError") return false;
       console.error(e);
-      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "error", result: "Failed to complete this task. Please retry." } : t));
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "error", result: e instanceof Error ? e.message : "Failed to complete this task. Please retry." } : t));
       return false;
     }
   };
