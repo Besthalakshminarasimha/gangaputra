@@ -11,8 +11,8 @@ import FarmScoreCard from "@/components/farm/FarmScoreCard";
 
 type Farm = { id: string; farm_name: string; location: string; passport_share_token: string; verification_status: string };
 type Pond = { id: string; farm_id: string; pond_name: string; species: string | null; status: string; stocking_date: string | null; area_acres: number | null; verification_status: string };
-type Water = { id: string; pond_id: string; recorded_at: string; ph: number | null; dissolved_oxygen: number | null; temperature: number | null; salinity: number | null };
-type Log = { id: string; pond_id: string | null; log_date: string; feed_quantity: number | null; mortality_count: number | null; pond_observation: string | null };
+type Water = { id: string; pond_id: string; recorded_at: string; ph: number | null; dissolved_oxygen: number | null; temperature: number | null; salinity: number | null; verification_status: string };
+type Log = { id: string; pond_id: string | null; log_date: string; feed_quantity: number | null; mortality_count: number | null; pond_observation: string | null; verification_status: string };
 
 const FarmPassport = () => {
   const { user } = useAuth();
@@ -28,8 +28,8 @@ const FarmPassport = () => {
     Promise.all([
       supabase.from("farms").select("id, farm_name, location, passport_share_token, verification_status").eq("user_id", user.id).order("created_at"),
       supabase.from("ponds").select("id, farm_id, pond_name, species, status, stocking_date, area_acres, verification_status").eq("user_id", user.id).order("created_at"),
-      supabase.from("water_quality_logs").select("id, pond_id, recorded_at, ph, dissolved_oxygen, temperature, salinity").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(200),
-      supabase.from("daily_farm_logs").select("id, pond_id, log_date, feed_quantity, mortality_count, pond_observation").eq("user_id", user.id).order("log_date", { ascending: false }).limit(200),
+      supabase.from("water_quality_logs").select("id, pond_id, recorded_at, ph, dissolved_oxygen, temperature, salinity, verification_status").eq("user_id", user.id).order("recorded_at", { ascending: false }).limit(200),
+      supabase.from("daily_farm_logs").select("id, pond_id, log_date, feed_quantity, mortality_count, pond_observation, verification_status").eq("user_id", user.id).order("log_date", { ascending: false }).limit(200),
     ]).then(([f, p, w, l]) => {
       setFarms((f.data ?? []) as Farm[]);
       setPonds((p.data ?? []) as Pond[]);
@@ -60,6 +60,7 @@ const FarmPassport = () => {
                   <p className="text-sm text-muted-foreground">{farm.location}</p>
                   <p className="mt-2 font-mono text-lg font-bold">{farm.passport_share_token}</p>
                   <Badge variant={farm.verification_status === "verified" ? "secondary" : "outline"} className="mt-1">{farm.verification_status}</Badge>
+                  {farm.verification_status !== "verified" && <p className="mt-2 max-w-md text-xs text-muted-foreground">Public sharing stays private until an administrator verifies this farm.</p>}
                 </div>
                 {farm.passport_share_token && (
                   <div className="flex flex-col items-center gap-2">
@@ -74,8 +75,8 @@ const FarmPassport = () => {
             <CardContent className="space-y-4">
               {ponds.filter((p) => p.farm_id === farm.id).length === 0 && <p className="text-sm text-muted-foreground">No ponds recorded for this farm.</p>}
               {ponds.filter((p) => p.farm_id === farm.id).map((pond) => {
-                const pw = water.filter((w) => w.pond_id === pond.id);
-                const pl = logs.filter((l) => l.pond_id === pond.id);
+                const pw = water.filter((w) => w.pond_id === pond.id && w.verification_status === "verified");
+                const pl = logs.filter((l) => l.pond_id === pond.id && l.verification_status === "verified");
                 const totalFeed = pl.reduce((s, l) => s + (Number(l.feed_quantity) || 0), 0);
                 const totalMort = pl.reduce((s, l) => s + (l.mortality_count ?? 0), 0);
                 return (

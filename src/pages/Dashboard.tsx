@@ -259,8 +259,8 @@ const Dashboard = () => {
     const [pondsResult, cyclesResult, waterResult, logsResult] = await Promise.all([
       supabase.from('ponds').select('id, pond_name, species, status').eq('user_id', user.id).order('created_at'),
       supabase.from('crop_cycles').select('id, cycle_name, species, start_date, end_date, status').eq('user_id', user.id).order('start_date', { ascending: false }),
-      supabase.from('water_quality_logs').select('id, pond_id, recorded_at, ph, dissolved_oxygen, temperature, salinity').eq('user_id', user.id).order('recorded_at', { ascending: false }).limit(1),
-      supabase.from('daily_farm_logs').select('id, pond_id, log_date, feed_quantity, mortality_count, pond_observation').eq('user_id', user.id).order('log_date', { ascending: false }).limit(5),
+      supabase.from('water_quality_logs').select('id, pond_id, recorded_at, ph, dissolved_oxygen, temperature, salinity, ammonia').eq('user_id', user.id).order('recorded_at', { ascending: false }).limit(500),
+      supabase.from('daily_farm_logs').select('id, pond_id, log_date, feed_quantity, mortality_count, pond_observation, symptoms').eq('user_id', user.id).gte('log_date', new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)).order('log_date', { ascending: false }).limit(500),
     ]);
 
     if (pondsResult.error || cyclesResult.error || waterResult.error || logsResult.error) {
@@ -307,13 +307,38 @@ const Dashboard = () => {
     { label: "Latest water log", value: latestWaterReading ? new Date(latestWaterReading.recorded_at).toLocaleDateString('en-IN') : "Not recorded", icon: Droplets, color: "text-blue-500" },
   ];
 
-  const todayLog = dailyFarmLogs.find((log) => log.log_date === new Date().toISOString().split('T')[0]);
-  const todayActions = [
-    !todayLog ? 'Record today’s feed, mortality, and pond observation' : null,
-    !latestWaterReading ? 'Add a measured water-quality reading' : null,
-    farms.length === 0 ? 'Add your first farm' : null,
-    ponds.length === 0 && farms.length > 0 ? 'Add individual pond records' : null,
-  ].filter((action): action is string => Boolean(action));
+  const localDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const todayDate = localDate(new Date());
+  const todayActions = (() => {
+    const actions: string[] = [];
+    if (!farms.length) actions.push('Add your first farm before recording pond activity.');
+    if (farms.length > 0 && ponds.length === 0) actions.push('Add individual pond records for your farm.');
+    if (ponds.length) {
+      for (const pond of ponds) {
+        const pondLogs = dailyFarmLogs.filter((log) => log.pond_id === pond.id);
+        const hasTodayLog = pondLogs.some((log) => log.log_date === todayDate);
+        if (!hasTodayLog) actions.push(`${pond.pond_name}: record today’s feed, mortality and observation.`);
+        const latestPondWater = waterQualityLogs.find((log) => log.pond_id === pond.id);
+        if (!latestPondWater) {
+          actions.push(`${pond.pond_name}: no measured water reading is recorded yet.`);
+        } else {
+          const ageDays = (Date.now() - new Date(latestPondWater.recorded_at).getTime()) / 86400000;
+          if (ageDays >= 7) actions.push(`${pond.pond_name}: last measured water reading was ${Math.floor(ageDays)} days ago; record a new test.`);
+          else if (ageDays >= 3) actions.push(`${pond.pond_name}: no water test has been recorded in 3 or more days.`);
+          if (latestPondWater.ph != null && (latestPondWater.ph < 7.5 || latestPondWater.ph > 8.5)) actions.push(`${pond.pond_name}: latest recorded pH (${latestPondWater.ph}) is outside the 7.5–8.5 reference range; re-test and consult an aquaculture expert.`);
+          if (latestPondWater.dissolved_oxygen != null && latestPondWater.dissolved_oxygen < 4) actions.push(`${pond.pond_name}: latest recorded dissolved oxygen (${latestPondWater.dissolved_oxygen} mg/L) is below 4 mg/L; verify with a fresh measurement and seek expert advice.`);
+          if (latestPondWater.ammonia != null && latestPondWater.ammonia > 0.1) actions.push(`${pond.pond_name}: latest recorded ammonia (${latestPondWater.ammonia}) is above 0.1; verify with a fresh measurement and seek expert advice.`);
+        }
+        const recentMortality = pondLogs.filter((log) => log.log_date >= localDate(new Date(Date.now() - 7 * 86400000))).reduce((sum, log) => sum + (Number(log.mortality_count) || 0), 0);
+        if (recentMortality > 0) actions.push(`${pond.pond_name}: ${recentMortality} mortality recorded in the last 7 days; monitor closely and contact an aqua doctor if it rises or symptoms appear.`);
+        const reportsSymptoms = pondLogs.some((log) => log.log_date >= localDate(new Date(Date.now() - 7 * 86400000)) && Boolean(log.symptoms?.trim()));
+        if (reportsSymptoms) actions.push(`${pond.pond_name}: symptoms appear in a recent daily log; review the record and consider contacting an aqua doctor.`);
+      }
+    } else if (!farms.length) {
+      actions.push('No pond or water readings are available yet; add measured records to receive farm-specific actions.');
+    }
+    return actions;
+  })();
 
   const handleAddFarm = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -610,7 +635,7 @@ const Dashboard = () => {
                  {todayActions.map((action) => <li key={action} className="flex items-start gap-2"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />{action}</li>)}
                </ul>
              )}
-             {latestWaterReading && <p className="mt-3 text-xs text-muted-foreground">Latest measured water reading: pH {latestWaterReading.ph ?? 'not recorded'}, dissolved oxygen {latestWaterReading.dissolved_oxygen ?? 'not recorded'} mg/L.</p>}
+             <p className="mt-3 text-xs text-muted-foreground">Actions are based on your saved pond, water-test and daily-log records. No measurements or diagnoses are estimated.</p>
            </CardContent>
          </Card>
 
