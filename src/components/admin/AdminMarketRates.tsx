@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
-import { IndianRupee, Loader2, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { FileUp, IndianRupee, Loader2, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 
 type RateKind = "shrimp" | "fish";
 
@@ -28,6 +29,9 @@ interface FishRate {
   rate_per_kg: number;
 }
 
+type SuggestedShrimpRate = Omit<ShrimpRate, "id"> & { id: string; selected: boolean };
+type SuggestedFishRate = Omit<FishRate, "id"> & { id: string; selected: boolean };
+
 const today = () => new Date().toISOString().split("T")[0];
 
 const AdminMarketRates = () => {
@@ -38,6 +42,11 @@ const AdminMarketRates = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingKind, setEditingKind] = useState<RateKind>("shrimp");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [savingImportedKind, setSavingImportedKind] = useState<RateKind | null>(null);
+  const [pdfInput, setPdfInput] = useState<HTMLInputElement | null>(null);
+  const [pdfName, setPdfName] = useState("");
+  const [suggestedRates, setSuggestedRates] = useState<{ shrimp: SuggestedShrimpRate[]; fish: SuggestedFishRate[] } | null>(null);
   const [form, setForm] = useState({
     location: "",
     state: "",
@@ -47,6 +56,78 @@ const AdminMarketRates = () => {
     rate: "",
   });
   const { toast } = useToast();
+
+  const handlePdfUpload = async (file?: File) => {
+    if (!file) return;
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      toast({ title: "Choose a PDF", description: "Market price import accepts PDF files only.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast({ title: "PDF is too large", description: "Choose a file smaller than 20 MB.", variant: "destructive" });
+      return;
+    }
+
+    setPdfBusy(true);
+    setPdfName(file.name);
+    setSuggestedRates(null);
+    try {
+      const pdfjs = await import("pdfjs-dist");
+      pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+      const document = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+      if (document.numPages > 100) throw new Error("The PDF has more than 100 pages. Choose a shorter market sheet.");
+      const pageTexts: string[] = [];
+      for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+        const page = await document.getPage(pageNumber);
+        const content = await page.getTextContent();
+        pageTexts.push(content.items.map((item) => "str" in item ? item.str : "").filter(Boolean).join(" "));
+      }
+      const documentText = pageTexts.join("\n").trim();
+      if (documentText.length < 20) throw new Error("No readable text was found. Scanned-image PDFs need OCR; try a searchable PDF.");
+      if (documentText.length > 160000) throw new Error("The extracted text exceeds 160,000 characters. Choose a shorter market sheet.");
+
+      const { data, error } = await supabase.functions.invoke("extract-market-rates", { body: { documentText } });
+      if (error) throw new Error(data?.error ?? error.message ?? "Could not analyze this PDF.");
+      const importedShrimp = Array.isArray(data?.shrimp) ? data.shrimp : [];
+      const importedFish = Array.isArray(data?.fish) ? data.fish : [];
+      if (!importedShrimp.length && !importedFish.length) throw new Error("No explicit shrimp or fish prices were found in this PDF.");
+      setSuggestedRates({
+        shrimp: importedShrimp.map((rate: Omit<ShrimpRate, "id">, index: number) => ({ ...rate, id: `shrimp-${index}`, selected: true })),
+        fish: importedFish.map((rate: Omit<FishRate, "id">, index: number) => ({ ...rate, id: `fish-${index}`, selected: true })),
+      });
+      toast({ title: "PDF analyzed", description: "Review each suggested rate and fill any missing publication date before publishing." });
+    } catch (error) {
+      toast({ title: "Could not analyze PDF", description: error instanceof Error ? error.message : "Please try another PDF.", variant: "destructive" });
+    } finally {
+      setPdfBusy(false);
+    }
+  };
+
+  const publishImportedRates = async (kind: RateKind) => {
+    if (!suggestedRates) return;
+    const selected = suggestedRates[kind].filter((rate) => rate.selected);
+    if (selected.length === 0) {
+      toast({ title: "Select rates to publish", description: `Choose at least one ${kind} rate to publish.`, variant: "destructive" });
+      return;
+    }
+    if (selected.some((rate) => !rate.date || !/^\d{4}-\d{2}-\d{2}$/.test(rate.date))) {
+      toast({ title: "Publication date required", description: "Enter a valid date for every selected rate. The PDF did not state a date for some prices.", variant: "destructive" });
+      return;
+    }
+    setSavingImportedKind(kind);
+    const rows = selected.map(({ id: _id, selected: _selected, ...rate }) => rate);
+    const result = kind === "shrimp"
+      ? await supabase.from("shrimp_rates").insert(rows)
+      : await supabase.from("fish_rates").insert(rows);
+    if (result.error) {
+      toast({ title: "Could not publish imported prices", description: result.error.message, variant: "destructive" });
+    } else {
+      setSuggestedRates((previous) => previous ? { ...previous, [kind]: [] } : previous);
+      toast({ title: `${selected.length} ${kind} rate(s) published`, description: "Prices now appear with other admin-published market rates." });
+      await fetchRates();
+    }
+    setSavingImportedKind(null);
+  };
 
   const fetchRates = async () => {
     setLoading(true);
@@ -191,6 +272,62 @@ const AdminMarketRates = () => {
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />Refresh
         </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Import prices from a PDF</CardTitle>
+          <p className="text-sm text-muted-foreground">Extracted prices stay unpublished until you review and publish them. Only explicit prices are included.</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <input
+            ref={setPdfInput}
+            type="file"
+            accept="application/pdf,.pdf"
+            className="hidden"
+            onChange={(event) => { void handlePdfUpload(event.target.files?.[0]); event.target.value = ""; }}
+          />
+          <Button type="button" variant="outline" onClick={() => pdfInput?.click()} disabled={pdfBusy || savingImportedKind !== null}>
+            {pdfBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
+            {pdfBusy ? "Analyzing PDF…" : "Choose and analyze PDF"}
+          </Button>
+          {pdfName && <p className="text-sm text-muted-foreground">{pdfName}</p>}
+          {suggestedRates && (
+            <div className="space-y-5 border-t pt-4">
+              <p className="text-sm font-medium">Review the extracted values. Unprinted dates are left blank and must be entered before publishing.</p>
+              {suggestedRates.shrimp.length > 0 && (
+                <section className="space-y-3">
+                  <h3 className="font-semibold">Shrimp prices</h3>
+                  {suggestedRates.shrimp.map((rate) => (
+                    <div key={rate.id} className="grid gap-3 border-b pb-3 sm:grid-cols-[auto_minmax(0,1fr)_minmax(150px,200px)] sm:items-center">
+                      <Checkbox aria-label={`Select shrimp rate ${rate.location} count ${rate.count_range}`} checked={rate.selected} onCheckedChange={(checked) => setSuggestedRates((old) => old ? { ...old, shrimp: old.shrimp.map((item) => item.id === rate.id ? { ...item, selected: checked === true } : item) } : old)} />
+                      <div className="text-sm"><p className="font-medium">{rate.location} · Count {rate.count_range} · ₹{rate.rate_per_kg}/kg</p><p className="text-xs text-muted-foreground">Date {rate.date || "not printed in PDF"}</p></div>
+                      <Input aria-label={`Date for shrimp rate ${rate.location} count ${rate.count_range}`} type="date" value={rate.date || ""} onChange={(event) => setSuggestedRates((old) => old ? { ...old, shrimp: old.shrimp.map((item) => item.id === rate.id ? { ...item, date: event.target.value } : item) } : old)} />
+                    </div>
+                  ))}
+                  <Button onClick={() => void publishImportedRates("shrimp")} disabled={pdfBusy || savingImportedKind !== null}>
+                    {savingImportedKind === "shrimp" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Publish selected shrimp prices
+                  </Button>
+                </section>
+              )}
+              {suggestedRates.fish.length > 0 && (
+                <section className="space-y-3">
+                  <h3 className="font-semibold">Fish prices</h3>
+                  {suggestedRates.fish.map((rate) => (
+                    <div key={rate.id} className="grid gap-3 border-b pb-3 sm:grid-cols-[auto_minmax(0,1fr)_minmax(150px,200px)] sm:items-center">
+                      <Checkbox aria-label={`Select fish rate ${rate.species} ${rate.location}`} checked={rate.selected} onCheckedChange={(checked) => setSuggestedRates((old) => old ? { ...old, fish: old.fish.map((item) => item.id === rate.id ? { ...item, selected: checked === true } : item) } : old)} />
+                      <div className="text-sm"><p className="font-medium">{rate.species} · {rate.location}, {rate.state} · ₹{rate.rate_per_kg}/kg</p><p className="text-xs text-muted-foreground">Date {rate.date || "not printed in PDF"}</p></div>
+                      <Input aria-label={`Date for fish rate ${rate.species} ${rate.location}`} type="date" value={rate.date || ""} onChange={(event) => setSuggestedRates((old) => old ? { ...old, fish: old.fish.map((item) => item.id === rate.id ? { ...item, date: event.target.value } : item) } : old)} />
+                    </div>
+                  ))}
+                  <Button onClick={() => void publishImportedRates("fish")} disabled={pdfBusy || savingImportedKind !== null}>
+                    {savingImportedKind === "fish" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Publish selected fish prices
+                  </Button>
+                </section>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
