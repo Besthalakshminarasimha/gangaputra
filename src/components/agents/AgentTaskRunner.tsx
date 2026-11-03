@@ -134,6 +134,7 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
       const decoder = new TextDecoder();
       let textBuffer = "";
       let fullResult = "";
+      let streamEnded = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -147,23 +148,24 @@ const AgentTaskRunner = ({ agent, onBack }: AgentTaskRunnerProps) => {
           if (line.endsWith("\r")) line = line.slice(0, -1);
           if (!line.startsWith("data: ")) continue;
           const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
+          if (jsonStr === "[DONE]") { streamEnded = true; break; }
+          let parsed: any;
           try {
-            const parsed = JSON.parse(jsonStr);
-            if (parsed.type === "error" || parsed.type === "response.failed") {
-              throw new Error(parsed.error?.message || "The AI request failed.");
-            }
-            const content = parsed.type === "response.output_text.delta"
-              ? parsed.delta
-              : parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              fullResult += content;
-              setTasks(prev => prev.map(t => t.id === taskId ? { ...t, result: fullResult } : t));
-            }
+            parsed = JSON.parse(jsonStr);
           } catch {
-            textBuffer = line + "\n" + textBuffer;
-            break;
+            continue;
           }
+          if (parsed.type === "error" || parsed.type === "response.failed") {
+            throw new Error(parsed.error?.message || parsed.response?.error?.message || "The AI request failed.");
+          }
+          const content = parsed.type === "response.output_text.delta"
+            ? parsed.delta
+            : parsed.choices?.[0]?.delta?.content;
+          if (content) {
+            fullResult += content;
+            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, result: fullResult } : t));
+          }
+          if (streamEnded) break;
         }
       }
 
