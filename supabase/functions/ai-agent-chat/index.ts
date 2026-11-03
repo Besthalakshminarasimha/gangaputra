@@ -70,13 +70,17 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ error: "AI service is not configured." }, 500);
     const gateway = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(req));
-    const upstream = await gateway.fetch("https://ai.gateway.lovable.dev/v1/responses", {
+    const chatMessages = [
+      { role: "system", content: contextualPrompt + "\n\nProvide a comprehensive, actionable report using markdown. Clearly distinguish recorded facts from suggestions. Do not invent measurements, market prices, diagnoses, or results." },
+      ...messages,
+    ];
+    const upstream = await gateway.fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST", signal: req.signal,
-      headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "fetch" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "openai/gpt-6-astra",
-        input: [{ role: "system", content: [{ type: "input_text", text: contextualPrompt + "\n\nProvide a comprehensive, actionable report using markdown. Clearly distinguish recorded facts from suggestions. Do not invent measurements, market prices, diagnoses, or results." }] }, ...input],
-        stream: true, store: false, reasoning: { effort: "low", summary: "auto" }, include: ["reasoning.encrypted_content"],
+        model: "google/gemini-2.5-flash",
+        messages: chatMessages,
+        stream: true,
       }),
     });
     if (!upstream.ok) {
