@@ -1,8 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayResponseHeaders, getLovableAiGatewayRunId } from "../_shared/aiGatewayRunId.ts";
+import { GatewayError, streamChatCompletion } from "npm:@lovable.dev/ai-gateway";
 
-const headers = { ...corsHeaders, "Access-Control-Allow-Headers": `${corsHeaders["Access-Control-Allow-Headers"]}, x-lovable-aig-run-id` };
+const headers = corsHeaders;
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...headers, "Content-Type": "application/json" } });
 const MAX_REQUEST_SIZE = 7_500_000;
 const ALLOWED_AGENT_IDS = new Set(["water-quality", "disease-detective", "feed-optimizer", "market-analyst", "pond-planner", "lab-assistant", "vet-advisor", "browser-agent"]);
@@ -69,30 +69,46 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ error: "AI service is not configured." }, 500);
-    const gateway = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(req));
     const chatMessages = [
-      { role: "system", content: contextualPrompt + "\n\nProvide a comprehensive, actionable report using markdown. Clearly distinguish recorded facts from suggestions. Do not invent measurements, market prices, diagnoses, or results." },
-      ...messages,
+      { role: "system" as const, content: contextualPrompt + "\n\nProvide a comprehensive, actionable report using markdown. Clearly distinguish recorded facts from suggestions. Do not invent measurements, market prices, diagnoses, or results." },
+      ...input,
     ];
-    const upstream = await gateway.fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST", signal: req.signal,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: chatMessages,
-        stream: true,
-      }),
+    const events = await streamChatCompletion({ model: "google/gemini-3.8-flash", messages: chatMessages }, { signal: req.signal, runId: req.headers.get("X-Lovable-AIG-Run-ID") ?? undefined });
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        try {
+          for await (const event of events) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        } catch (error) {
+          if (error instanceof GatewayError) {
+            console.error("AI gateway stream failure", error.toJSON());
+            const frame = { type: "error", error: { message: error.message, code: error.code, httpStatus: error.httpStatus, outcome: error.outcome, recovery: error.recovery, remote: error.remote, ids: error.ids } };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(frame)}\n\n`));
+          } else {
+            console.error("AI gateway stream failure", error);
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", error: { message: "The AI response was interrupted." } })}\n\n`));
+          }
+          controller.close();
+        }
+      },
+      cancel() {
+        // The caller's request signal is forwarded to the SDK, which cancels local network I/O.
+      },
     });
-    if (!upstream.ok) {
-      const safeMessage = (await upstream.text()).slice(0, 1000);
-      console.error("AI gateway response", upstream.status, safeMessage);
-      return new Response(JSON.stringify({ error: safeMessage || "The AI request could not be completed." }), { status: upstream.status, headers: getLovableAiGatewayResponseHeaders(upstream.headers, { ...headers, "Content-Type": "application/json" }) });
-    }
-    if (!upstream.body) return json({ error: "The AI service returned no response." }, 502);
-    return new Response(upstream.body, { status: upstream.status, headers: getLovableAiGatewayResponseHeaders(upstream.headers, { ...headers, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" }) });
+    const responseHeaders = new Headers(headers);
+    responseHeaders.set("Content-Type", "text/event-stream");
+    responseHeaders.set("Cache-Control", "no-cache");
+    responseHeaders.set("Access-Control-Expose-Headers", "X-Lovable-AIG-Run-ID");
+    if (events.runId) responseHeaders.set("X-Lovable-AIG-Run-ID", events.runId);
+    return new Response(stream, { headers: responseHeaders });
   } catch (error) {
     if (req.signal.aborted && error instanceof Error && error.name === "AbortError") return new Response(null, { status: 499, headers });
     console.error("AI agent request failed", error);
+    if (error instanceof GatewayError) return new Response(JSON.stringify({ error: error.message, code: error.code, recovery: error.recovery, ids: error.ids }), { status: error.httpStatus ?? 502, headers: { ...headers, "Content-Type": "application/json" } });
     return json({ error: error instanceof Error ? error.message : "Could not complete the AI request." }, 400);
   }
 });
