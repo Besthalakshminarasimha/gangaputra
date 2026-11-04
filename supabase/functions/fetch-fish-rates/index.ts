@@ -1,76 +1,41 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
-
-// Indian fish market locations & species base prices (INR/kg)
-const fishSpecies = [
-  { name: 'Rohu', base: 220 },
-  { name: 'Catla', base: 240 },
-  { name: 'Mrigal', base: 200 },
-  { name: 'Tilapia', base: 180 },
-  { name: 'Pangasius (Basa)', base: 170 },
-  { name: 'Pearl Spot (Karimeen)', base: 550 },
-  { name: 'Seabass', base: 480 },
-  { name: 'Pomfret', base: 700 },
-  { name: 'Mackerel', base: 280 },
-];
-
-const markets = [
-  { name: 'Kolkata', state: 'West Bengal', mod: 1.05 },
-  { name: 'Vijayawada', state: 'Andhra Pradesh', mod: 0.95 },
-  { name: 'Chennai', state: 'Tamil Nadu', mod: 1.0 },
-  { name: 'Mumbai', state: 'Maharashtra', mod: 1.15 },
-  { name: 'Kochi', state: 'Kerala', mod: 1.1 },
-  { name: 'Bhubaneswar', state: 'Odisha', mod: 0.92 },
-  { name: 'Hyderabad', state: 'Telangana', mod: 1.02 },
-  { name: 'Guwahati', state: 'Assam', mod: 1.08 },
-];
-
-function variation(seed: number) {
-  const x = Math.sin(seed) * 10000;
-  return Math.floor((x - Math.floor(x)) * 21) - 10;
-}
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
-  try {
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-    const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST" && req.method !== "GET") return json({ success: false, error: "Method not allowed" }, 405);
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY');
-    const db = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-    const { data: publishedRates } = db
-      ? await db.from('fish_rates').select('species, location, state, date, rate_per_kg').lte('date', today.toISOString().split('T')[0]).order('date', { ascending: false }).limit(1000)
-      : { data: [] };
-    const latestPublished = new Map<string, number>();
-    for (const published of publishedRates || []) {
-      const key = `${published.location.toLowerCase()}::${published.species.toLowerCase()}`;
-      if (!latestPublished.has(key)) latestPublished.set(key, published.rate_per_kg);
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const key = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+    if (!url || !key) return json({ success: false, error: "Market rates are unavailable." }, 503);
+    const db = createClient(url, key, { auth: { persistSession: false } });
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await db.from("fish_rates").select("species, location, state, date, rate_per_kg").lte("date", today).order("date", { ascending: false }).limit(3000);
+    if (error) {
+      console.error("Published fish rate query failed", error.message);
+      return json({ success: false, error: "Could not load published fish prices." }, 503);
     }
 
-    const data = markets.map((m) => ({
-      location: m.name,
-      state: m.state,
-      date: dateStr,
-      dateISO: today.toISOString().split('T')[0],
-      trend: variation(dateSeed + m.name.length) > 0 ? 'up' : 'down',
-      lastUpdated: new Date().toISOString(),
-       rates: fishSpecies.map((s, i) => ({
-        species: s.name,
-         rate_per_kg: latestPublished.get(`${m.name.toLowerCase()}::${s.name.toLowerCase()}`) ?? Math.max(100, Math.round(s.base * m.mod + variation(dateSeed + i * 7 + m.name.length))),
-      })),
-       source: fishSpecies.some((s) => latestPublished.has(`${m.name.toLowerCase()}::${s.name.toLowerCase()}`)) ? 'admin-published' : 'ai-estimated',
-    }));
-
-    return new Response(JSON.stringify({ success: true, data, totalLocations: data.length, generatedAt: new Date().toISOString(), source: data.some((market) => market.source === 'admin-published') ? 'admin-published' : 'ai-estimated' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (e) {
-    return new Response(JSON.stringify({ success: false, error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const latest = new Map<string, { species: string; location: string; state: string; date: string; rate_per_kg: number }>();
+    for (const rate of data ?? []) {
+      const key = `${rate.location.toLocaleLowerCase()}::${rate.species.toLocaleLowerCase()}`;
+      if (!latest.has(key)) latest.set(key, rate);
+    }
+    const grouped = new Map<string, { location: string; state: string; date: string; rates: { species: string; rate_per_kg: number; date: string }[]; source: "admin-published" }>();
+    for (const rate of latest.values()) {
+      const key = `${rate.location}::${rate.state}`;
+      const market = grouped.get(key) ?? { location: rate.location, state: rate.state, date: rate.date, rates: [], source: "admin-published" as const };
+      if (rate.date > market.date) market.date = rate.date;
+      market.rates.push({ species: rate.species, rate_per_kg: rate.rate_per_kg, date: rate.date });
+      grouped.set(key, market);
+    }
+    const result = [...grouped.values()].map((market) => ({ ...market, rates: market.rates.sort((a, b) => a.species.localeCompare(b.species)) }));
+    return json({ success: true, data: result, totalLocations: result.length, source: "admin-published", unavailable: result.length === 0 });
+  } catch (error) {
+    console.error("Published fish prices unavailable", error);
+    return json({ success: false, error: "Could not load published fish prices." }, 500);
   }
 });
