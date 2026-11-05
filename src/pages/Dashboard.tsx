@@ -24,9 +24,6 @@ import BookmarksSection from "@/components/content/BookmarksSection";
 import PriceAlertsBanner from "@/components/PriceAlertsBanner";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import ConnectionQualityWidget from "@/components/ConnectionQualityWidget";
-import PriceHistoryChart from "@/components/PriceHistoryChart";
-import PricePrediction from "@/components/PricePrediction";
-import PriceExport from "@/components/PriceExport";
 import UpdatesCarousel from "@/components/UpdatesCarousel";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -706,14 +703,7 @@ const Dashboard = () => {
         {/* Daily Fish Rates */}
         <FishRatesCard />
 
-        {/* Price History Chart */}
-        <PriceHistoryChart />
-
-        {/* AI Price Prediction */}
-        <PricePrediction />
-
-        {/* Price Export */}
-        <PriceExport />
+        {/* Price history, prediction and export are hidden until they use only published records (they generated simulated values). */}
 
         {/* Trade Section */}
         <TradeSection />

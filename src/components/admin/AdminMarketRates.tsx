@@ -115,10 +115,9 @@ const AdminMarketRates = () => {
       return;
     }
     setSavingImportedKind(kind);
-    const rows = selected.map(({ id: _id, selected: _selected, ...rate }) => rate);
     const result = kind === "shrimp"
-      ? await supabase.from("shrimp_rates").insert(rows)
-      : await supabase.from("fish_rates").insert(rows);
+      ? await supabase.from("shrimp_rates").insert(suggestedRates.shrimp.filter((r) => r.selected).map(({ location, count_range, date, rate_per_kg }) => ({ location, count_range, date, rate_per_kg })))
+      : await supabase.from("fish_rates").insert(suggestedRates.fish.filter((r) => r.selected).map(({ species, location, state, date, rate_per_kg }) => ({ species, location, state, date, rate_per_kg })));
     if (result.error) {
       toast({ title: "Could not publish imported prices", description: result.error.message, variant: "destructive" });
     } else {
