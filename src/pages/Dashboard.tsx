@@ -706,14 +706,7 @@ const Dashboard = () => {
         {/* Daily Fish Rates */}
         <FishRatesCard />
 
-        {/* Price History Chart */}
-        <PriceHistoryChart />
-
-        {/* AI Price Prediction */}
-        <PricePrediction />
-
-        {/* Price Export */}
-        <PriceExport />
+        {/* Price history, prediction and export are hidden until they use only published records (they generated simulated values). */}
 
         {/* Trade Section */}
         <TradeSection />
