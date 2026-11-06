@@ -5,6 +5,6 @@
 - [x] Phase 3: Connect crop-cycle timeline, harvest/profit metrics, Farm Score, and Farm Passport with QR sharing.
 - [ ] Phase 4: Improve data transparency, AI safety language, expert/store recommendations, notifications, and admin verification surfaces.
 - [ ] Phase 5: Regression test existing auth, routes, database access, integrations, and mobile layouts; fix only issues found.
-- [ ] Refine navigation: move Aqua Doctors and Loans into the menu, reduce emergency-button prominence, and add profile logout.
+- [x] Refine navigation: move Aqua Doctors and Loans into the menu, reduce emergency-button prominence, and add profile logout.
 - [ ] Restore trustworthy live shrimp and fish rates from a real source without fabricated fallback prices.
 - [ ] Reproduce and fix site-wide issues found in preview/build/runtime checks; verify key mobile and signed-out flows.

@@ -9,11 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationPreferences from "@/components/NotificationPreferences";
-import { User, Lock, Info, ArrowLeft, Bell } from "lucide-react";
+import { User, Lock, Info, ArrowLeft, Bell, LogOut } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [fullName, setFullName] = useState("");
@@ -22,6 +22,11 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -248,6 +253,12 @@ const Profile = () => {
                 </form>
               </CardContent>
             </Card>
+            <div className="border-t pt-4">
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </Button>
+            </div>
           </TabsContent>
 
           <TabsContent value="notifications">
