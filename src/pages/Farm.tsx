@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,8 +32,10 @@ import FarmRecordsPanel from "@/components/farm/FarmRecordsPanel";
 
 const Farm = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const [searchLocation, setSearchLocation] = useState("");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") === "loans" ? "loans" : "tools");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -125,7 +127,14 @@ const Farm = () => {
 
       <div className="p-4 space-y-6">
         {/* Main Tabs */}
-        <Tabs defaultValue="tools" className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            setActiveTab(value);
+            setSearchParams(value === "loans" ? { tab: "loans" } : {});
+          }}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="tools" className="flex items-center gap-1 text-xs">
               <Wrench className="h-4 w-4" />
